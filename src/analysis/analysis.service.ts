@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
 
+export type Metrics = {
+	numOfLetters: number;
+	numOfSyllables: number;
+	numOfWords: number;
+	numOfSentences: number;
+	avgLettersPerWord: number;
+	avgSyllablePerWord: number;
+	avgWordsPerSentence: number;
+	avgSentencesPerHundredWords: number;
+	avgSyllablesPerHundredWords: number;
+	stdLettersPerWord: number;
+};
+
 @Injectable()
 export class AnalysisService {
-	textAnalyzer(rawText: string) {
-		const sentences = this.parseSentences(rawText);
-		const totalWords = sentences.reduce(
-			(acc, sentence) => this.parseWords(sentence).length + acc,
-			0
-		);
-		const meanOfWordsPerSentence = totalWords / sentences.length;
-		return meanOfWordsPerSentence;
+	// main services
+
+	textAnalyzer(): Metrics {
+		return {} as Metrics;
 	}
 
-	parseSentences(rawText: string) {
-		return rawText.split('.');
-	}
+	// algorithm services
 
-	parseWords(text: string) {
-		return text.split(' ');
-	}
-
-	// calculateMeanOfSyllablesPerWord(words: string[]) {
-	// 	return 0;
-	// }
+	// helper services
 }
