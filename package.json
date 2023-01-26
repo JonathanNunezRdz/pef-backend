@@ -28,8 +28,10 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^9.0.0",
     "@prisma/client": "^4.9.0",
+    "lorca-nlp": "^1.0.12",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "silabas": "^1.0.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
