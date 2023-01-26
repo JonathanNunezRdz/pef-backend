@@ -24,7 +24,7 @@ export type Score = {
 
 @Injectable()
 export class AnalysisService {
-	// main services
+	// Main services
 
 	textAnalyzer(): Metrics {
 		const FHScore = this.alFH({} as Metrics);
@@ -32,25 +32,28 @@ export class AnalysisService {
 		return {} as Metrics;
 	}
 
-	// algorithm services
+	// Algorithm services
 
 	alFH(metrics: Metrics): FernandezHuertaScore {
-		// const {  } = metrics;
-		// matematicas
-		const scoreNum = 23;
-
+		const { avgSyllablePerWord, avgWordsPerSentence } = metrics;
+		let scoreNum = 206.84 - 60 * avgSyllablePerWord - 1.02 * avgWordsPerSentence;
+        scoreNum = Number(scoreNum.toFixed(2));				
 		return {
-			score: 23,
+			score: scoreNum,
 			...this.getFHDifficulty(scoreNum),
 		};
 	}
 
-	// helper services
+	// Helper services
 
 	getFHDifficulty(score: number): Pick<FernandezHuertaScore, 'difficulty' | 'schoolGrade'> {
-		if (score < 30) return { difficulty: 'asd', schoolGrade: '' };
-		return { difficulty: 'asd', schoolGrade: '' };
-	}
-
-	getFHSchoolGrade() { }
+		if (score < 30) return { difficulty: 'Muy dificil', schoolGrade: 'Universitario (especialización)' }; else
+		if (score >= 30 && score < 50) return { difficulty: 'Difícil', schoolGrade: 'Cursos selectivos' }; else
+		if (score >= 50 && score < 60) return { difficulty: 'Moderadamente difícil', schoolGrade: 'Cursos selectivos' }; else
+		if (score >= 60 && score < 70) return { difficulty: 'Normal', schoolGrade: '7° u 8° grado selectivos' }; else
+		if (score >= 70 && score < 80) return { difficulty: 'Moderadamente fácil', schoolGrade: '6° grado' }; else
+		if (score >= 80 && score < 90) return { difficulty: 'Fácil', schoolGrade: '5° grado' }; else
+		return  { difficulty: 'Muy fácil', schoolGrade: '4° grado' };
+		
+	}	
 }
