@@ -109,7 +109,7 @@ def count_paragraphs(text: str):
     else:
         return len(text)
 
-def numbers2words(text: str):
+def numbers_to_words(text: str):
     '''
     Comverts figures into words (e.g. 2 to two)
     '''
@@ -117,12 +117,13 @@ def numbers2words(text: str):
     new_text = []
     for word in text.split():
         formato_numerico = re.compile("^[\-]?[1-9][0-9]*\.?[0-9]+$")
-        if re.match(formato_numerico,word):
-            if type(word) == "int":
-                word = int(word)
-            else:
-                word = float(word)
+
+        if re.match(formato_numerico, word):
+            if type(word) == "int": word = int(word)
+            else: word = float(word)
+
             word = nal.to_word(word)
+
         new_text.append(word.lower())
         
     text = ' '.join(new_text)
@@ -156,21 +157,21 @@ def count_all_syllables(text: str):
     else:
         return total
 
-def calculate_syllables_per_word(text: str):
+def calculate_avg_syllables_per_word(text: str):
     '''
     Syllables-per-word mean (P value)
     '''
-    syllables = count_all_syllables(numbers2words(text))
-    words = count_words(numbers2words(text))
+    syllables = count_all_syllables(numbers_to_words(text))
+    words = count_words(numbers_to_words(text))
     return round(syllables / words,2)
 
 
-def Fval(text: str):
+def calculate_avg_words_per_sentence(text: str):
     '''
     Words-per-sentence mean (F value)
     '''
     sentences = count_sentences(text)
-    words = count_words(numbers2words(text))
+    words = count_words(numbers_to_words(text))
     return round(words / sentences,2)
 
 
@@ -178,8 +179,8 @@ def fernandez_huerta(text: str):
     '''
     Fernández Huerta readability score
     '''
-    pval = calculate_syllables_per_word(text)
-    fval = Fval(text)
+    pval = calculate_avg_syllables_per_word(text)
+    fval = calculate_avg_words_per_sentence(text)
     print(pval, fval)
 
     fernandez_huerta = 206.84 - 60*pval - 1.02*fval
@@ -190,7 +191,7 @@ def szigriszt_pazos(text: str):
     '''
     Szigriszt Pazos readability score (1992)
     '''
-    return round(206.835 - 62.3 * ( count_all_syllables(numbers2words(text)) / count_words(numbers2words(text))) - (count_words(numbers2words(text)) / count_sentences(text)),2)
+    return round(206.835 - 62.3 * ( count_all_syllables(numbers_to_words(text)) / count_words(numbers_to_words(text))) - (count_words(numbers_to_words(text)) / count_sentences(text)),2)
 
 
 def gutierrez(text: str):
@@ -201,7 +202,7 @@ def gutierrez(text: str):
     
     return round(legibguti, 2)
 
-def calculate_avg_std_letters_per_word(text: str):
+def calculate_avg_var_letters_per_word(text: str):
     # Delete all digits
     text = ''.join(filter(lambda x: not x.isdigit(), text))
     # Cleans it all
@@ -227,22 +228,29 @@ def mu(text: str):
     '''
     n = count_words(text)
     # The mean calculation needs at least 1 value on the list, and the variance, two. If somebody enters only one word or, what is worse, a figure, the calculation breaks, so this is a 'fix'
-    mean, variance = calculate_avg_std_letters_per_word(text)
+    mean, variance = calculate_avg_var_letters_per_word(text)
     if mean is None or variance is None: return 0
 
     mu = (n / (n - 1)) * (mean / variance) * 100
     return round(mu, 2)
+
+def calculate_avg_sentences_per_hundred_words(text: str):
+    sentences = count_sentences(text)
+    words = count_words(numbers_to_words(text))
+    return 100 * sentences / words
+
+def calculate_avg_syllables_per_hundred_words(text: str):
+    syllables = count_all_syllables(numbers_to_words(text))
+    words = count_words(numbers_to_words(text))
+    return 100 * syllables / words
     
     
 def crawford(text: str):
     '''
     Crawford's readability formula
     '''
-    sentences = count_sentences(text)
-    words = count_words(numbers2words(text))
-    syllables = count_all_syllables(numbers2words(text))
-    SeW = 100 * sentences / words # number of sentences per 100 words (mean)
-    SiW = 100 * syllables / words # number of syllables in 100 words (mean)
+    SeW = calculate_avg_sentences_per_hundred_words(text) # number of sentences per 100 words (mean)
+    SiW = calculate_avg_syllables_per_hundred_words(text) # number of syllables in 100 words (mean)
     years = -0.205 * SeW + 0.049 * SiW - 3.407
     years = round(years,1)
     return years

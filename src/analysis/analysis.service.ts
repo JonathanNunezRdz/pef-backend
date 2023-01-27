@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import silabas from 'silabas';
+import { UtilService } from '../util/util.service';
 
 export type Metrics = {
 	numOfLetters: number;
@@ -25,6 +25,7 @@ export type Score = {
 
 @Injectable()
 export class AnalysisService {
+	constructor(private utilService: UtilService) {}
 	// main services
 
 	textAnalyzer(rawText: string): Metrics {
@@ -40,54 +41,17 @@ export class AnalysisService {
 	// helper services
 
 	getMetrics(text: string): Metrics {
+		// save text to file so python can use the text
+		const file = this.utilService.writeFile(text);
 		// call python script to get metrics
-		const sentences = this.getSentences(text);
-		const words = this.getWords(text);
-		const letters = words.join('');
-
-		this.getSyllables(words[0]);
+		const metrics = this.utilService.spawnPython<Metrics>(file);
+		return metrics;
 
 		return {
-			numOfLetters: letters.length,
-			numOfWords: words.length,
-			numOfSentences: sentences.length,
+			numOfLetters: 5,
+			// numOfWords: words.length,
+			// numOfSentences: sentences.length,
 		} as Metrics;
-	}
-
-	getSentences(text: string) {
-		const pattern = new RegExp(/[.:;!?\)\()]/);
-		const sentences = text
-			.replace(/[\n\t\r]/g, '')
-			.split(pattern)
-			.filter((elem) => elem !== '');
-		return sentences;
-	}
-
-	getWords(text: string) {
-		const sentences = this.getSentences(text);
-		const words = sentences
-			.reduce((acc, sentence) => {
-				const tempWords = sentence.split(' ');
-				return [...acc, ...tempWords];
-			}, [])
-			.filter((word) => word !== '')
-			.map(this.removeSpecialCharacters);
-		return words;
-	}
-
-	getSyllables(text: string) {
-		const sil = silabas(text);
-		console.log(sil);
-
-		// const pattern = new RegExp(/\W+/);
-		// const word = text.replace(pattern, text);
-
-		return ['dsad', 'asd'];
-	}
-
-	removeSpecialCharacters(text: string): string {
-		const pattern = new RegExp(/[^\p{L}]/gu);
-		return text.replace(pattern, '');
 	}
 }
 

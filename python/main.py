@@ -33,22 +33,27 @@ def main():
     
     # print(text)
 
+    avg_letters_per_word, var_letters_per_word = legibilidad.calculate_avg_var_letters_per_word(text)
+    if avg_letters_per_word is None or var_letters_per_word is None:
+        avg_letters_per_word, var_letters_per_word = 0, 0
+    
+
+
     metrics = {
         'numOfLetters': legibilidad.count_letters(text),
         'numOfSyllables': legibilidad.count_all_syllables(text),
         'numOfWords': legibilidad.count_words(text),
         'numOfSentences': legibilidad.count_sentences(text),
-        'avgLettersPerWord': 0,
-        'avgSyllablePerWord': 0,
-        'avgWordsPerSentence': 0,
-        'avgSentencesPerHundredWords': 0,
-        'avgSyllablesPerHundredWords': 0,
-        'varLettersPerWord': 0
+        'avgLettersPerWord': avg_letters_per_word,
+        'avgSyllablePerWord': legibilidad.calculate_avg_syllables_per_word(text),
+        'avgWordsPerSentence': legibilidad.calculate_avg_words_per_sentence(text),
+        'avgSentencesPerHundredWords': legibilidad.calculate_avg_sentences_per_hundred_words(text),
+        'avgSyllablesPerHundredWords': legibilidad.calculate_avg_syllables_per_hundred_words(text),
+        'varLettersPerWord': var_letters_per_word
     }
 
-    print(metrics)
-    
-    return None
+    print(dumps(metrics))
+    sys.stdout.flush()
 
 if __name__ == '__main__':
     main()
