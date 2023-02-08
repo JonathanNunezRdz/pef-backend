@@ -23,6 +23,28 @@ export type Score = {
 	score: number;
 };
 
+export type Metrics = {
+	numOfLetters: number;
+	numOfSyllables: number;
+	numOfWords: number;
+	numOfSentences: number;
+	avgLettersPerWord: number;
+	avgSyllablePerWord: number;
+	avgWordsPerSentence: number;
+	avgSentencesPerHundredWords: number;
+	avgSyllablesPerHundredWords: number;
+	stdLettersPerWord: number;
+};
+
+export type FernandezHuertaScore = Score & {
+	difficulty: string
+	schoolGrade: string;
+};
+
+export type Score = {
+	score: number;
+};
+
 @Injectable()
 export class AnalysisService {
 	constructor(private utilService: UtilService) {}
