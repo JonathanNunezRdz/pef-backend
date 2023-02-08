@@ -45,6 +45,7 @@ export class AnalysisService {
 		const file = this.utilService.writeFile(text);
 		// call python script to get metrics
 		const metrics = this.utilService.spawnPython<Metrics>(file);
+		// remove file
 		return metrics;
 
 		return {

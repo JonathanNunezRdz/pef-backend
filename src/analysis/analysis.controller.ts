@@ -1,12 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
-import { AnalysisService, TEST_TEXT } from './analysis.service';
+import { Body, Controller, Post } from '@nestjs/common';
+import { AnalysisService } from './analysis.service';
 
 @Controller('analysis')
 export class AnalysisControler {
 	constructor(private analysisService: AnalysisService) {}
 
-	@Get('')
-	getAnalysis() {
-		return this.analysisService.getMetrics(TEST_TEXT);
+	@Post('')
+	getAnalysis(@Body() { text }: { text: string }) {
+		return this.analysisService.getMetrics(text);
 	}
 }
