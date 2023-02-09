@@ -7,6 +7,6 @@ export class AnalysisControler {
 
 	@Post('')
 	getAnalysis(@Body() { text }: { text: string }) {
-		return this.analysisService.getMetrics(text);
+		return this.analysisService.textAnalyzer(text);
 	}
 }

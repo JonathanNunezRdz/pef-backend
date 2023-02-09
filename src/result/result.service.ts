@@ -4,6 +4,7 @@ import { UpdateResultDto } from './dto/update-result.dto';
 
 @Injectable()
 export class ResultService {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	create(createResultDto: CreateResultDto) {
 		return 'This action adds a new result';
 	}
@@ -16,6 +17,7 @@ export class ResultService {
 		return `This action returns a #${id} result`;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(id: number, updateResultDto: UpdateResultDto) {
 		return `This action updates a #${id} result`;
 	}
