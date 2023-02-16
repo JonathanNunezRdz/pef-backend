@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
 
 export type Metrics = {
@@ -50,9 +51,29 @@ export type AllScores = {
 	m: muScore;
 };
 
+export type AnalysisResponse = {
+	id: string;
+	createdAt: Date;
+	updatedAt: Date;
+	scores: AllScores;
+};
+
 @Injectable()
 export class AnalysisService {
 	constructor(private utilService: UtilService) {}
+
+	// post services
+
+	postAnalysis(rawText: string): AnalysisResponse {
+		const scores = this.textAnalyzer(rawText);
+
+		return {
+			id: v4(),
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			scores,
+		};
+	}
 
 	// main services
 
