@@ -47,12 +47,12 @@ export type Score = {
 };
 
 export type AllScores = {
-	fh: FernandezHuertaScore;
-	gp: GutierrezPoliniScore;
-	sp: SzigrisztPazosScore;
-	c: CrawfordScore;
-	i: InfleszScore;
-	m: muScore;
+	fHuerta: FernandezHuertaScore;
+	gPolini: GutierrezPoliniScore;
+	sPazos: SzigrisztPazosScore;
+	crawford: CrawfordScore;
+	inflesz: InfleszScore;
+	mu: muScore;
 };
 
 export type AnalysisResponse = {
@@ -97,12 +97,12 @@ export class AnalysisService {
 
 		// call all algorithms
 		const allScores: AllScores = {
-			c: this.alCrawford(metrics),
-			fh: this.alFH(metrics),
-			gp: this.alGP(metrics),
-			i: this.alInflesz(metrics),
-			m: this.alMu(metrics),
-			sp: this.alSP(metrics),
+			crawford: this.alCrawford(metrics),
+			fHuerta: this.alFH(metrics),
+			gPolini: this.alGP(metrics),
+			inflesz: this.alInflesz(metrics),
+			mu: this.alMu(metrics),
+			sPazos: this.alSP(metrics),
 		};
 
 		return allScores;
