@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
 
 export type Metrics = {
@@ -37,36 +38,71 @@ export type muScore = Score & {
 	difficulty: string;
 };
 
+export type CrawfordScore = {
+	years: number;
+};
+
 export type Score = {
 	score: number;
 };
 
 export type AllScores = {
-	fh: FernandezHuertaScore;
-	gp: GutierrezPoliniScore;
-	sp: SzigrisztPazosScore;
-	c: Score;
-	i: InfleszScore;
-	m: muScore;
+	fHuerta: FernandezHuertaScore;
+	gPolini: GutierrezPoliniScore;
+	sPazos: SzigrisztPazosScore;
+	crawford: CrawfordScore;
+	inflesz: InfleszScore;
+	mu: muScore;
+};
+
+export type AnalysisResponse = {
+	id: string;
+	createdAt: Date;
+	updatedAt: Date;
+	scores: AllScores;
 };
 
 @Injectable()
 export class AnalysisService {
 	constructor(private utilService: UtilService) {}
 
+	// post services
+
+	postAnalysis(rawText: string): AnalysisResponse {
+		const scores = this.textAnalyzer(rawText);
+
+		return {
+			id: v4(),
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			scores,
+		};
+	}
+
 	// main services
 
+	/**
+	 * Main function that gets all the scores
+	 * @param rawText text sent from client
+	 * @returns object with all scores
+	 *
+	 * @example
+	 *
+	 * ```
+	 * const scores = this.analysisService.textAnalizer(text)
+	 * ```
+	 */
 	textAnalyzer(rawText: string): AllScores {
 		const metrics = this.getMetrics(rawText);
 
 		// call all algorithms
 		const allScores: AllScores = {
-			c: this.alCrawford(metrics),
-			fh: this.alFH(metrics),
-			gp: this.alGP(metrics),
-			i: this.alInflesz(metrics),
-			m: this.alMu(metrics),
-			sp: this.alSP(metrics),
+			crawford: this.alCrawford(metrics),
+			fHuerta: this.alFH(metrics),
+			gPolini: this.alGP(metrics),
+			inflesz: this.alInflesz(metrics),
+			mu: this.alMu(metrics),
+			sPazos: this.alSP(metrics),
 		};
 
 		return allScores;
@@ -76,49 +112,49 @@ export class AnalysisService {
 
 	alFH(metrics: Metrics): FernandezHuertaScore {
 		const { avgSyllablePerWord, avgWordsPerSentence } = metrics;
-		let scoreNum =
+		const rawScore =
 			206.84 - 60 * avgSyllablePerWord - 1.02 * avgWordsPerSentence;
-		scoreNum = Number(scoreNum.toFixed(2));
+		const score = this.normalizeScore(rawScore);
 		return {
-			score: scoreNum,
-			...this.getFHDifficulty(scoreNum),
+			score,
+			...this.getFHDifficulty(score),
 		};
 	}
 
 	alGP(metrics: Metrics): GutierrezPoliniScore {
 		const { numOfLetters, numOfWords, numOfSentences } = metrics;
-		let scoreNum =
+		const rawScore =
 			95.2 -
 			9.7 * (numOfLetters / numOfWords) -
 			0.35 * (numOfWords / numOfSentences);
-		scoreNum = Number(scoreNum.toFixed(2));
+		const score = this.normalizeScore(rawScore);
 		return {
-			score: scoreNum,
-			...this.getGPDifficulty(scoreNum),
+			score,
+			...this.getGPDifficulty(score),
 		};
 	}
 
-	alCrawford(metrics: Metrics): Score {
+	alCrawford(metrics: Metrics): CrawfordScore {
 		const { numOfSyllables, numOfWords, numOfSentences } = metrics;
 		const SyPHW = (100 * numOfSyllables) / numOfWords;
 		const SePHW = (100 * numOfSentences) / numOfWords;
-		let scoreNum = -0.205 * SePHW + 0.049 * SyPHW - 3.407;
-		scoreNum = Number(scoreNum.toFixed(1));
+		const rawScore = -0.205 * SePHW + 0.049 * SyPHW - 3.407;
+		const years = Number(rawScore.toFixed(1));
 		return {
-			score: scoreNum,
+			years,
 		};
 	}
 
 	alSP(metrics: Metrics): SzigrisztPazosScore {
 		const { numOfSyllables, numOfWords, numOfSentences } = metrics;
-		let scoreNum =
+		const rawScore =
 			206.835 -
 			62.3 * (numOfSyllables / numOfWords) -
 			numOfWords / numOfSentences;
-		scoreNum = Number(scoreNum.toFixed(2));
+		const score = this.normalizeScore(rawScore);
 		return {
-			score: scoreNum,
-			...this.getSPDifficulty(scoreNum),
+			score,
+			...this.getSPDifficulty(score),
 		};
 	}
 
@@ -193,9 +229,7 @@ export class AnalysisService {
 		return { difficulty: 'Muy fácil' };
 	}
 
-	getSPDifficulty(
-		score: number
-	): Pick<SzigrisztPazosScore, 'difficulty' | 'type' | 'schoolGrade'> {
+	getSPDifficulty(score: number): Omit<SzigrisztPazosScore, 'score'> {
 		if (score < 16)
 			return {
 				difficulty: 'Muy dificil',
@@ -246,6 +280,12 @@ export class AnalysisService {
 		if (score >= 56 && score <= 65) return { difficulty: 'Normal' };
 		if (score >= 66 && score <= 80) return { difficulty: 'Bastante fácil' };
 		return { difficulty: 'Muy fácil' };
+	}
+
+	normalizeScore(score: number) {
+		let scoreNum = Math.min(score, 100);
+		scoreNum = Math.max(0, scoreNum);
+		return Number(scoreNum.toFixed(2));
 	}
 }
 

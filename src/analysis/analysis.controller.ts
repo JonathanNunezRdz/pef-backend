@@ -6,7 +6,7 @@ export class AnalysisControler {
 	constructor(private analysisService: AnalysisService) {}
 
 	@Post('')
-	getAnalysis(@Body() { text }: { text: string }) {
-		return this.analysisService.textAnalyzer(text);
+	postAnalysis(@Body() { text }: { text: string }) {
+		return this.analysisService.postAnalysis(text);
 	}
 }
