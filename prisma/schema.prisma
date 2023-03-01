@@ -21,21 +21,59 @@ model User {
   email     String @unique
   hash      String
 
-  history Result[]
+  history Score[]
 }
 
-model Result {
+model Algorithm {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  huerta   Float
-  polini   Float
-  crawford Float
-  pazos    Float
-  barrio   Float
-  miu      Float
+  name      String
+  unit      String
+  min       Float
+  max       Float
+  formula   String
+  variables String[]
 
-  user   User   @relation(references: [id], fields: [userId])
-  userId String
+  scores Score[]
+  scales AlgorithmScale[]
 }
+
+model Score {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  value     Float
+  dificulty String?
+
+  algorithmId String
+  algorithm   Algorithm @relation(references: [id], fields: [algorithmId])
+  userId      String
+  user        User      @relation(references: [id], fields: [userId])
+}
+
+model AlgorithmScale {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  upperLimit Float
+  level      String
+  extra      Json?
+
+  algorithmId String
+  algorithm   Algorithm @relation(references: [id], fields: [algorithmId])
+}
+
+// model Variable {
+//   id        String   @id @default(uuid())
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   name String
+
+//   algorithmId String
+//   algorithm Algorithm @relation(references: [id], fields: [algorithmId])
+// }

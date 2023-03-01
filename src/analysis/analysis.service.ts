@@ -1,182 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { evaluate } from 'mathjs';
+import { PrismaService } from 'src/prisma/prisma.service';
+import {
+	BaseAlgorithm,
+	Metrics,
+	prismaAlgorithmFindManySelect,
+	PrismaScale,
+} from 'types';
 import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
 
-export type Metrics = {
-	numOfLetters: number;
-	numOfSyllables: number;
-	numOfWords: number;
-	numOfSentences: number;
-	avgLettersPerWord: number;
-	avgSyllablePerWord: number;
-	avgWordsPerSentence: number;
-	avgSentencesPerHundredWords: number;
-	avgSyllablesPerHundredWords: number;
-	varLettersPerWord: number;
-};
-
-export type FernandezHuertaScore = Score & {
-	difficulty: string;
-	schoolGrade: string;
-};
-
-export type GutierrezPoliniScore = Score & {
-	difficulty: string;
-};
-
-export type SzigrisztPazosScore = Score & {
-	difficulty: string;
-	type: string;
-	schoolGrade: string;
-};
-
-export type InfleszScore = Score & {
-	difficulty: string;
-};
-
-export type muScore = Score & {
-	difficulty: string;
-};
-
-export type CrawfordScore = {
-	years: number;
-};
-
-export type Score = {
-	score: number;
-};
-
-export type AllScores = {
-	fHuerta: FernandezHuertaScore;
-	gPolini: GutierrezPoliniScore;
-	sPazos: SzigrisztPazosScore;
-	crawford: CrawfordScore;
-	inflesz: InfleszScore;
-	mu: muScore;
-};
-
-export type AnalysisResponse = {
-	id: string;
-	createdAt: Date;
-	updatedAt: Date;
-	scores: AllScores;
-};
-
 @Injectable()
 export class AnalysisService {
-	constructor(private utilService: UtilService) {}
+	constructor(
+		private utilService: UtilService,
+		private prismaService: PrismaService
+	) {}
 
 	// post services
 
-	postAnalysis(rawText: string): AnalysisResponse {
-		const scores = this.textAnalyzer(rawText);
+	async postAnalysis(rawText: string) {
+		const metrics = this.getMetrics(rawText);
+
+		console.log('metrics:', metrics);
+
+		const algorithms = await this.prismaService.algorithm.findMany({
+			select: prismaAlgorithmFindManySelect.select,
+		});
+
+		const scores: BaseAlgorithm[] = algorithms.map((algorithm) => {
+			const formula = algorithm.formula;
+			const variables = algorithm.variables.reduce((acc, current) => {
+				return {
+					...acc,
+					[current]: metrics[current],
+				};
+			}, {});
+
+			const value = evaluate(formula, variables);
+
+			// TODO: get scale range that the score fits in
+
+			return {
+				id: algorithm.id,
+				name: algorithm.name,
+				unit: algorithm.unit,
+				min: algorithm.min,
+				max: algorithm.max,
+				score: {
+					value,
+					// INCOMPLETE
+				},
+			};
+		});
+
+		// const scores = this.textAnalyzer(rawText);
 
 		return {
 			id: v4(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			scores,
-		};
-	}
-
-	// main services
-
-	/**
-	 * Main function that gets all the scores
-	 * @param rawText text sent from client
-	 * @returns object with all scores
-	 *
-	 * @example
-	 *
-	 * ```
-	 * const scores = this.analysisService.textAnalizer(text)
-	 * ```
-	 */
-	textAnalyzer(rawText: string): AllScores {
-		const metrics = this.getMetrics(rawText);
-
-		// call all algorithms
-		const allScores: AllScores = {
-			crawford: this.alCrawford(metrics),
-			fHuerta: this.alFH(metrics),
-			gPolini: this.alGP(metrics),
-			inflesz: this.alInflesz(metrics),
-			mu: this.alMu(metrics),
-			sPazos: this.alSP(metrics),
-		};
-
-		return allScores;
-	}
-
-	// Algorithm services
-
-	alFH(metrics: Metrics): FernandezHuertaScore {
-		const { avgSyllablePerWord, avgWordsPerSentence } = metrics;
-		const rawScore =
-			206.84 - 60 * avgSyllablePerWord - 1.02 * avgWordsPerSentence;
-		const score = this.normalizeScore(rawScore);
-		return {
-			score,
-			...this.getFHDifficulty(score),
-		};
-	}
-
-	alGP(metrics: Metrics): GutierrezPoliniScore {
-		const { numOfLetters, numOfWords, numOfSentences } = metrics;
-		const rawScore =
-			95.2 -
-			9.7 * (numOfLetters / numOfWords) -
-			0.35 * (numOfWords / numOfSentences);
-		const score = this.normalizeScore(rawScore);
-		return {
-			score,
-			...this.getGPDifficulty(score),
-		};
-	}
-
-	alCrawford(metrics: Metrics): CrawfordScore {
-		const { numOfSyllables, numOfWords, numOfSentences } = metrics;
-		const SyPHW = (100 * numOfSyllables) / numOfWords;
-		const SePHW = (100 * numOfSentences) / numOfWords;
-		const rawScore = -0.205 * SePHW + 0.049 * SyPHW - 3.407;
-		const years = Number(rawScore.toFixed(1));
-		return {
-			years,
-		};
-	}
-
-	alSP(metrics: Metrics): SzigrisztPazosScore {
-		const { numOfSyllables, numOfWords, numOfSentences } = metrics;
-		const rawScore =
-			206.835 -
-			62.3 * (numOfSyllables / numOfWords) -
-			numOfWords / numOfSentences;
-		const score = this.normalizeScore(rawScore);
-		return {
-			score,
-			...this.getSPDifficulty(score),
-		};
-	}
-
-	alInflesz(metrics: Metrics): InfleszScore {
-		const { numOfSyllables, numOfWords, numOfSentences } = metrics;
-		let scoreNum =
-			206.835 -
-			62.3 * (numOfSyllables / numOfWords) -
-			numOfWords / numOfSentences;
-		scoreNum = Number(scoreNum.toFixed(2));
-		return {
-			score: scoreNum,
-			...this.getINFDifficulty(scoreNum),
-		};
-	}
-
-	// WIP
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	alMu(metrics: Metrics): muScore {
-		return {
-			score: 0,
-			difficulty: '',
 		};
 	}
 
@@ -191,101 +75,24 @@ export class AnalysisService {
 		return metrics;
 	}
 
-	getFHDifficulty(
+	getDifficulty(
+		scale: PrismaScale[],
 		score: number
-	): Pick<FernandezHuertaScore, 'difficulty' | 'schoolGrade'> {
-		if (score < 30)
-			return {
-				difficulty: 'Muy dificil',
-				schoolGrade: 'Universitario (especialización)',
-			};
-		if (score >= 30 && score < 50)
-			return { difficulty: 'Difícil', schoolGrade: 'Cursos selectivos' };
-		if (score >= 50 && score < 60)
-			return {
-				difficulty: 'Moderadamente difícil',
-				schoolGrade: 'Cursos selectivos',
-			};
-		if (score >= 60 && score < 70)
-			return {
-				difficulty: 'Normal',
-				schoolGrade: '7° u 8° grado selectivos',
-			};
-		if (score >= 70 && score < 80)
-			return {
-				difficulty: 'Moderadamente fácil',
-				schoolGrade: '6° grado',
-			};
-		if (score >= 80 && score < 90)
-			return { difficulty: 'Fácil', schoolGrade: '5° grado' };
-		return { difficulty: 'Muy fácil', schoolGrade: '4° grado' };
-	}
-
-	getGPDifficulty(score: number): Pick<GutierrezPoliniScore, 'difficulty'> {
-		if (score <= 20) return { difficulty: 'Muy dificil' };
-		if (score >= 21 && score <= 40) return { difficulty: 'Dificil' };
-		if (score >= 41 && score <= 60) return { difficulty: 'Normal' };
-		if (score >= 61 && score <= 80) return { difficulty: 'Fácil' };
-		return { difficulty: 'Muy fácil' };
-	}
-
-	getSPDifficulty(score: number): Omit<SzigrisztPazosScore, 'score'> {
-		if (score < 16)
-			return {
-				difficulty: 'Muy dificil',
-				type: 'Cientifica, filosófica',
-				schoolGrade: 'Titulados universitarios',
-			};
-		if (score >= 16 && score <= 35)
-			return {
-				difficulty: 'Árido',
-				type: 'pedagógica, técnica',
-				schoolGrade: 'Selectividad y estudios universitarios',
-			};
-		if (score >= 36 && score <= 50)
-			return {
-				difficulty: 'Bastante difícil',
-				type: 'Literatura y divulgación',
-				schoolGrade: 'Cursos secundarios',
-			};
-		if (score >= 51 && score <= 65)
-			return {
-				difficulty: 'Normal',
-				type: 'Los media',
-				schoolGrade: 'Popular',
-			};
-		if (score >= 66 && score <= 75)
-			return {
-				difficulty: 'Bastante fácil',
-				type: 'Novela, revista',
-				schoolGrade: '12 años',
-			};
-		if (score >= 76 && score <= 85)
-			return {
-				difficulty: 'Fácil',
-				type: 'Para quioscos',
-				schoolGrade: '11 años',
-			};
-
-		return {
-			difficulty: 'Muy fácil',
-			type: 'Cómics y viñetas',
-			schoolGrade: '6 a 10 años',
-		};
-	}
-
-	getINFDifficulty(score: number): Pick<InfleszScore, 'difficulty'> {
-		if (score < 41) return { difficulty: 'Muy dificil' };
-		if (score >= 41 && score <= 55) return { difficulty: 'Algo dificil' };
-		if (score >= 56 && score <= 65) return { difficulty: 'Normal' };
-		if (score >= 66 && score <= 80) return { difficulty: 'Bastante fácil' };
-		return { difficulty: 'Muy fácil' };
+	): Pick<PrismaScale, 'level' | 'extra'> {
+		for (let i = 0; i < scale.length; i++) {
+			if (score < scale[i].upperLimit) {
+				return {
+					level: scale[i].level,
+					extra: scale[i].extra,
+				};
+			}
+		}
+		throw new InternalServerErrorException('score out of bounds');
 	}
 
 	normalizeScore(score: number) {
-		let scoreNum = Math.min(score, 100);
-		scoreNum = Math.max(0, scoreNum);
-		return Number(scoreNum.toFixed(2));
+		const scoreNum = Math.min(score, 100);
+		return Math.max(0, scoreNum);
 	}
 }
 

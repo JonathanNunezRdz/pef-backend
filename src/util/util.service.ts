@@ -22,7 +22,14 @@ export class UtilService {
 			this.configService.getOrThrow<string>('PYTHON_COMMAND');
 
 		const filename = this.getFilename(file);
-		const pythonScript = join(__dirname, '..', '..', 'python', 'main.py');
+		const pythonScript = join(
+			__dirname,
+			'..',
+			'..',
+			'..',
+			'python',
+			'main.py'
+		);
 		const pythonProcess = spawnSync(
 			PYTHON_COMMAND,
 			[pythonScript, '-f', filename],
@@ -33,6 +40,6 @@ export class UtilService {
 	}
 
 	getFilename(file: string) {
-		return join(__dirname, '..', '..', 'tmp', file);
+		return join(__dirname, '..', '..', '..', 'tmp', file);
 	}
 }

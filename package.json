@@ -19,7 +19,10 @@
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json",
 		"start:db": "docker compose up dev-db -d",
-		"stop:db": "docker compose down"
+		"stop:db": "docker compose down",
+		"prepare:db": "npx prisma migrate deploy",
+		"restart:db": "npm run stop:db && npm run start:db",
+		"seed:db": "npx prisma db seed"
 	},
 	"dependencies": {
 		"@nestjs/common": "^9.0.0",
@@ -28,7 +31,9 @@
 		"@nestjs/mapped-types": "*",
 		"@nestjs/platform-express": "^9.0.0",
 		"@prisma/client": "^4.9.0",
+		"argon2": "^0.30.3",
 		"lorca-nlp": "^1.0.12",
+		"mathjs": "^11.5.1",
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.2.0",
 		"silabas": "^1.0.3",
@@ -76,5 +81,8 @@
 		],
 		"coverageDirectory": "../coverage",
 		"testEnvironment": "node"
+	},
+	"prisma": {
+		"seed": "ts-node prisma/seed.ts"
 	}
 }
