@@ -29,15 +29,15 @@ model Algorithm {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name      String
-  unit      String
-  min       Float
-  max       Float
-  formula   String
-  variables String[]
+  name    String
+  unit    String
+  min     Float
+  max     Float
+  formula String
 
-  scores Score[]
-  scales AlgorithmScale[]
+  variables AlgorithmVariable[]
+  scores    Score[]
+  scales    AlgorithmScale[]
 }
 
 model Score {
@@ -67,13 +67,22 @@ model AlgorithmScale {
   algorithm   Algorithm @relation(references: [id], fields: [algorithmId])
 }
 
-// model Variable {
-//   id        String   @id @default(uuid())
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
+model Variable {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-//   name String
+  name String
 
-//   algorithmId String
-//   algorithm Algorithm @relation(references: [id], fields: [algorithmId])
-// }
+  algorithms AlgorithmVariable[]
+}
+
+model AlgorithmVariable {
+  algorithmId String
+  algorithm   Algorithm @relation(references: [id], fields: [algorithmId])
+
+  variableId String
+  variable   Variable @relation(references: [id], fields: [variableId])
+
+  @@id([algorithmId, variableId])
+}

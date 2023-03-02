@@ -14,6 +14,49 @@ async function main() {
 		},
 	});
 
+	await prisma.variable.createMany({
+		data: [
+			{
+				name: 'numOfLetters',
+			},
+			{
+				name: 'numOfSyllables',
+			},
+			{
+				name: 'numOfWords',
+			},
+			{
+				name: 'numOfSentences',
+			},
+			{
+				name: 'avgLettersPerWord',
+			},
+			{
+				name: 'avgSyllablePerWord',
+			},
+			{
+				name: 'avgWordsPerSentence',
+			},
+			{
+				name: 'avgSentencesPerHundredWords',
+			},
+			{
+				name: 'avgSyllablesPerHundredWords',
+			},
+			{
+				name: 'varLettersPerWord',
+			},
+		],
+	});
+
+	const variables = await prisma.variable.findMany();
+
+	const extractVariableId = (name: string) => {
+		const variable = variables.find((vari) => vari.name === name);
+		if (!variable) throw new Error('variable name not found');
+		return variable.id;
+	};
+
 	await prisma.$transaction([
 		prisma.algorithm.create({
 			data: {
@@ -23,7 +66,21 @@ async function main() {
 				unit: 'puntos de lecturabilidad',
 				formula:
 					'206.84 - 60 * avgSyllablePerWord - 1.02 * avgWordsPerSentence',
-				variables: ['avgSyllablePerWord', 'avgWordsPerSentence'],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId:
+									extractVariableId('avgSyllablePerWord'),
+							},
+							{
+								variableId: extractVariableId(
+									'avgWordsPerSentence'
+								),
+							},
+						],
+					},
+				},
 				scales: {
 					createMany: {
 						data: [
@@ -110,7 +167,21 @@ async function main() {
 				unit: 'puntos de comprensibilidad',
 				formula:
 					'95.2 - 9.7 * (numOfLetters / numOfWords) - 0.35 * (numOfWords / numOfSentences)',
-				variables: ['numOfLetters', 'numOfWords', 'numOfSentences'],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId: extractVariableId('numOfLetters'),
+							},
+							{
+								variableId: extractVariableId('numOfWords'),
+							},
+							{
+								variableId: extractVariableId('numOfSentences'),
+							},
+						],
+					},
+				},
 				scales: {
 					createMany: {
 						data: [
@@ -147,7 +218,21 @@ async function main() {
 				unit: 'nivel de perspicuidad',
 				formula:
 					'206.835 - 62.3 * (numOfSyllables / numOfWords) - numOfWords / numOfSentences',
-				variables: ['numOfSyllables', 'numOfWords', 'numOfSentences'],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId: extractVariableId('numOfSyllables'),
+							},
+							{
+								variableId: extractVariableId('numOfWords'),
+							},
+							{
+								variableId: extractVariableId('numOfSentences'),
+							},
+						],
+					},
+				},
 				scales: {
 					createMany: {
 						data: [
@@ -262,7 +347,21 @@ async function main() {
 				unit: 'nivel de perspicuidad',
 				formula:
 					'206.835 - 62.3 * (numOfSyllables / numOfWords) - numOfWords / numOfSentences',
-				variables: ['numOfSyllables', 'numOfWords', 'numOfSentences'],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId: extractVariableId('numOfSyllables'),
+							},
+							{
+								variableId: extractVariableId('numOfWords'),
+							},
+							{
+								variableId: extractVariableId('numOfSentences'),
+							},
+						],
+					},
+				},
 				scales: {
 					createMany: {
 						data: [
@@ -299,11 +398,23 @@ async function main() {
 				unit: 'puntos de legibilidad',
 				formula:
 					'(numOfWords / numOfWords - 1) * (avgLettersPerWord / varLettersPerWord)',
-				variables: [
-					'numOfWords',
-					'avgLettersPerWord',
-					'varLettersPerWord',
-				],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId:
+									extractVariableId('avgLettersPerWord'),
+							},
+							{
+								variableId: extractVariableId('numOfWords'),
+							},
+							{
+								variableId:
+									extractVariableId('varLettersPerWord'),
+							},
+						],
+					},
+				},
 				scales: {
 					createMany: {
 						data: [
@@ -348,10 +459,22 @@ async function main() {
 				unit: 'años de escolaridad',
 				formula:
 					'-0.205 * avgSentencesPerHundredWords + 0.049 * avgSyllablesPerHundredWords - 3.407',
-				variables: [
-					'avgSentencesPerHundredWords',
-					'avgSyllablesPerHundredWords',
-				],
+				variables: {
+					createMany: {
+						data: [
+							{
+								variableId: extractVariableId(
+									'avgSentencesPerHundredWords'
+								),
+							},
+							{
+								variableId: extractVariableId(
+									'avgSyllablesPerHundredWords'
+								),
+							},
+						],
+					},
+				},
 			},
 		}),
 	]);
