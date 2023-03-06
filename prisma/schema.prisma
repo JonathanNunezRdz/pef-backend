@@ -6,6 +6,10 @@ generator client {
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -21,7 +25,17 @@ model User {
   email     String @unique
   hash      String
 
-  history Score[]
+  history AnalysisResult[]
+}
+
+model AnalysisResult {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scores Score[]
+  userId String
+  user   User    @relation(references: [id], fields: [userId])
 }
 
 model Algorithm {
@@ -48,10 +62,10 @@ model Score {
   value     Float
   dificulty String?
 
-  algorithmId String
-  algorithm   Algorithm @relation(references: [id], fields: [algorithmId])
-  userId      String
-  user        User      @relation(references: [id], fields: [userId])
+  algorithmId      String
+  algorithm        Algorithm      @relation(references: [id], fields: [algorithmId])
+  analysisResultId String
+  analysisResult   AnalysisResult @relation(references: [id], fields: [analysisResultId])
 }
 
 model AlgorithmScale {

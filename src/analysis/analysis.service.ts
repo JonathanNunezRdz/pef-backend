@@ -1,9 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { evaluate } from 'mathjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
-	BaseAlgorithm,
+	BaseAlgorithmScore,
 	Metrics,
+	PostAnalysisDto,
+	PostAnalysisResponse,
 	prismaAlgorithmFindManySelect,
 	PrismaScale,
 } from 'types';
@@ -19,42 +22,44 @@ export class AnalysisService {
 
 	// post services
 
-	async postAnalysis(rawText: string) {
-		const metrics = this.getMetrics(rawText);
-
-		console.log('metrics:', metrics);
+	async postAnalysis(dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
+		const { text } = dto;
+		const metrics = this.getMetrics(text);
 
 		const algorithms = await this.prismaService.algorithm.findMany({
 			select: prismaAlgorithmFindManySelect.select,
 		});
 
-		const scores: BaseAlgorithm[] = algorithms.map((algorithm) => {
-			const formula = algorithm.formula;
-			const variables = algorithm.variables.reduce((acc, current) => {
+		const scores: BaseAlgorithmScore[] = algorithms.map((algorithm) => {
+			const {
+				formula,
+				scales,
+				variables: rawVariables,
+				...rest
+			} = algorithm;
+			try {
+				const variables = rawVariables
+					.map((variable) => variable.variable.name)
+					.reduce((prev, current) => {
+						return {
+							...prev,
+							[current]: metrics[current],
+						};
+					}, {});
+
+				const value = evaluate(formula, variables);
+				const score = this.getAlgorithmScore(scales, value);
+
 				return {
-					...acc,
-					[current]: metrics[current],
+					...rest,
+					score,
 				};
-			}, {});
-
-			const value = evaluate(formula, variables);
-
-			// TODO: get scale range that the score fits in
-
-			return {
-				id: algorithm.id,
-				name: algorithm.name,
-				unit: algorithm.unit,
-				min: algorithm.min,
-				max: algorithm.max,
-				score: {
-					value,
-					// INCOMPLETE
-				},
-			};
+			} catch (error) {
+				console.error('algorithm:', algorithm.name);
+				console.error('variables:', rawVariables);
+				throw error;
+			}
 		});
-
-		// const scores = this.textAnalyzer(rawText);
 
 		return {
 			id: v4(),
@@ -67,27 +72,40 @@ export class AnalysisService {
 	// Helper services
 
 	getMetrics(text: string): Metrics {
-		// save text to file so python can use the text
 		const file = this.utilService.writeFile(text);
-		// call python script to get metrics
 		const metrics = this.utilService.spawnPython<Metrics>(file);
-		// remove file
+		this.utilService.deleteFile(file);
 		return metrics;
 	}
 
-	getDifficulty(
-		scale: PrismaScale[],
-		score: number
-	): Pick<PrismaScale, 'level' | 'extra'> {
-		for (let i = 0; i < scale.length; i++) {
-			if (score < scale[i].upperLimit) {
+	getAlgorithmScore(
+		scales: PrismaScale[],
+		value: number
+	): BaseAlgorithmScore['score'] {
+		if (scales.length === 0) {
+			return {
+				value,
+			};
+		}
+		for (let i = 0; i < scales.length; i++) {
+			if (value < scales[i].upperLimit) {
+				if (scales[i].extra) {
+					const extra = scales[i].extra as Prisma.JsonObject;
+					return {
+						value,
+						level: scales[i].level,
+						extra,
+					};
+				}
 				return {
-					level: scale[i].level,
-					extra: scale[i].extra,
+					value,
+					level: scales[i].level,
 				};
 			}
 		}
-		throw new InternalServerErrorException('score out of bounds');
+		throw new InternalServerErrorException(
+			`score out of bounds ${JSON.stringify(scales)}\n\nwith ${value}`
+		);
 	}
 
 	normalizeScore(score: number) {

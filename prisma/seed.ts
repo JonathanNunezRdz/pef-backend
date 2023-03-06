@@ -397,7 +397,7 @@ async function main() {
 				min: 0,
 				unit: 'puntos de legibilidad',
 				formula:
-					'(numOfWords / numOfWords - 1) * (avgLettersPerWord / varLettersPerWord)',
+					'(numOfWords / (numOfWords - 1)) * (avgLettersPerWord / varLettersPerWord) * 100',
 				variables: {
 					createMany: {
 						data: [

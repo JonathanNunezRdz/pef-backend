@@ -1,13 +1,13 @@
 import { Prisma } from '@prisma/client';
 
-export const prismaScaleSelect = Prisma.validator<Prisma.AlgorithmScaleArgs>()({
-	select: {
-		id: true,
-		upperLimit: true,
-		level: true,
-		extra: true,
-	},
-});
+export const prismaScaleSelect =
+	Prisma.validator<Prisma.Algorithm$scalesArgs>()({
+		select: {
+			upperLimit: true,
+			level: true,
+			extra: true,
+		},
+	});
 
 export type PrismaScale = Prisma.AlgorithmScaleGetPayload<
 	typeof prismaScaleSelect

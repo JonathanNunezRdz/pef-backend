@@ -1,0 +1,91 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  firstName String [not null]
+  lastName String [not null]
+  email String [unique, not null]
+  hash String [not null]
+  history AnalysisResult [not null]
+}
+
+Table AnalysisResult {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  scores Score [not null]
+  userId String [not null]
+  user User [not null]
+}
+
+Table Algorithm {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  name String [not null]
+  unit String [not null]
+  min Float [not null]
+  max Float [not null]
+  formula String [not null]
+  variables AlgorithmVariable [not null]
+  scores Score [not null]
+  scales AlgorithmScale [not null]
+}
+
+Table Score {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  value Float [not null]
+  dificulty String
+  algorithmId String [not null]
+  algorithm Algorithm [not null]
+  analysisResultId String [not null]
+  analysisResult AnalysisResult [not null]
+}
+
+Table AlgorithmScale {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  upperLimit Float [not null]
+  level String [not null]
+  extra Json
+  algorithmId String [not null]
+  algorithm Algorithm [not null]
+}
+
+Table Variable {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  name String [not null]
+  algorithms AlgorithmVariable [not null]
+}
+
+Table AlgorithmVariable {
+  algorithmId String [not null]
+  algorithm Algorithm [not null]
+  variableId String [not null]
+  variable Variable [not null]
+
+  indexes {
+    (algorithmId, variableId) [pk]
+  }
+}
+
+Ref: AnalysisResult.userId > User.id
+
+Ref: Score.algorithmId > Algorithm.id
+
+Ref: Score.analysisResultId > AnalysisResult.id
+
+Ref: AlgorithmScale.algorithmId > Algorithm.id
+
+Ref: AlgorithmVariable.algorithmId > Algorithm.id
+
+Ref: AlgorithmVariable.variableId > Variable.id

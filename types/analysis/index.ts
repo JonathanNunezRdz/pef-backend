@@ -1,16 +1,27 @@
 import { Prisma } from '@prisma/client';
-import { prismaScaleFindManyInput } from 'types/scale';
+import { prismaScaleFindManyInput } from 'types';
+
+export * from './analysis.response';
+export * from './post-analysis.dto';
 
 export const prismaAlgorithmFindManySelect =
 	Prisma.validator<Prisma.AlgorithmArgs>()({
 		select: {
 			id: true,
-			formula: true,
-			variables: true,
 			name: true,
-			unit: true,
-			min: true,
+			formula: true,
 			max: true,
+			min: true,
+			unit: true,
+			variables: {
+				select: {
+					variable: {
+						select: {
+							name: true,
+						},
+					},
+				},
+			},
 			scales: prismaScaleFindManyInput,
 		},
 	});
