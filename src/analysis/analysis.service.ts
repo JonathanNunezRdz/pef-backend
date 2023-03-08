@@ -114,16 +114,11 @@ export class AnalysisService {
 	}
 }
 
-export const TEST_TEXT = `Vivo en una casa pequeña 
-pero moderna en el centro 
-de la ciudad? Mi casa 
-tiene dos habitaciones, 
-un baño, una sala de estar, 
-una cocina y una pequeña 
-terraza. Por las tardes el 
-sol calienta la casa durante 
-horas, así que no suele 
-hacer frío.`;
+export const TEST_TEXT = `Vivo en una casa pequeña pero moderna en el centro 
+de la ciudad. Mi casa tiene dos habitaciones, 
+un baño, una sala de estar, una cocina y una pequeña 
+terraza. Por las tardes el sol calienta la casa durante 
+horas, así que no suele hacer frío.`;
 
 /**
  * total de letras = 189
