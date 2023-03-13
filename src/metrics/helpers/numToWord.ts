@@ -20,9 +20,6 @@ export function numToWord(num: number, currency?: string) {
 				fraccion = choosenCurrency.decimalsingular as string;
 			else fraccion = choosenCurrency.decimalplural as string;
 		}
-	} else {
-		entero = '';
-		fraccion = '';
 	}
 
 	const humanReadable: [string, string][] = [];
@@ -81,7 +78,7 @@ export function numToWord(num: number, currency?: string) {
 	return sentence.replace(/\s+/g, ' ');
 }
 
-export function hundredsWords(num: number) {
+function hundredsWords(num: number) {
 	let converted = '';
 	if (num > 1000 || num < 0)
 		throw new Error("can't parse numbers where 0 < num < 1000");
@@ -97,7 +94,7 @@ export function hundredsWords(num: number) {
 	return capitalize(converted).trim();
 }
 
-export function convertGroup(group: string) {
+function convertGroup(group: string) {
 	let output = '';
 	if (group === '100') output = DECENAS[DECENAS.length - 1];
 	else if (group[0] !== '0') output = CENTENAS[parseInt(group[0]) - 1];
@@ -117,32 +114,34 @@ export function convertGroup(group: string) {
 	return output;
 }
 
-export function separateNumber(num: number): [string, string] {
-	const integer = num.toString().split('.').shift();
+function separateNumber(num: number): [string, string] {
+	const pair = num.toString().split('.');
+	if (pair.length === 1) pair.push('00');
+	const integer = pair.shift();
 	if (!integer) throw new Error('error at parsing number');
-	const decimal = num.toString().split('.').pop();
+	const decimal = pair.pop();
 	if (!decimal) throw new Error('error at parsing number');
-	return [integer, decimal.slice(0, 2)];
+	return [numberWithCommas(integer), decimal.slice(0, 2)];
 }
 
-export function numberWithCommas(x: number | string) {
+function numberWithCommas(x: number | string) {
 	x = Number(x);
 	return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export function round(num: number | string) {
+function round(num: number | string) {
 	if (typeof num === 'string') num = Number(num);
 	return Number(num.toFixed(2));
 }
 
-export function capitalize(text: string) {
+function capitalize(text: string) {
 	return text.replace(
 		/\p{L}\S*/gu,
 		(txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
 	);
 }
 
-export const UNIDADES = [
+const UNIDADES = [
 	'',
 	'UN ',
 	'DOS ',
@@ -166,8 +165,8 @@ export const UNIDADES = [
 	'VEINTE ',
 ];
 
-export const DECENA = [
-	'VENTI',
+const DECENAS = [
+	'VEINTI',
 	'TREINTA ',
 	'CUARENTA ',
 	'CINCUENTA ',
@@ -178,19 +177,7 @@ export const DECENA = [
 	'CIEN ',
 ];
 
-export const DECENAS = [
-	'VENTI',
-	'TREINTA ',
-	'CUARENTA ',
-	'CINCUENTA ',
-	'SESENTA ',
-	'SETENTA ',
-	'OCHENTA ',
-	'NOVENTA ',
-	'CIEN ',
-];
-
-export const CENTENAS = [
+const CENTENAS = [
 	'CIENTO ',
 	'DOSCIENTOS ',
 	'TRESCIENTOS ',
@@ -202,7 +189,7 @@ export const CENTENAS = [
 	'NOVECIENTOS ',
 ];
 
-export const UNITS = [
+const UNITS = [
 	['', ''],
 	['MIL ', 'MIL '],
 	['MILLON ', 'MILLONES '],
@@ -231,7 +218,7 @@ export const UNITS = [
 	['MIL DUODECILLONES', 'MIL DUODECILLONES'],
 ];
 
-export const MONEDAS = [
+const MONEDAS = [
 	{
 		country: 'Colombia',
 		currency: 'COP',

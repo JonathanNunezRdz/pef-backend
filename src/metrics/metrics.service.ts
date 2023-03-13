@@ -1,35 +1,46 @@
-import { Metrics } from '@customTypes';
 import { Injectable } from '@nestjs/common';
-import { numToWord } from './helpers/numberToWord';
+import { Metrics } from '@src/types';
+import { UtilService } from '@src/util/util.service';
+import { numToWord } from './helpers';
 
 @Injectable()
 export class MetricsService {
+	constructor(private utilService: UtilService) {}
+
 	getMetrics(text: string): Partial<Metrics> {
+		debugger;
 		text = numbersToWords(text);
+
 		return {
 			numOfLetters: this.countLetters(text),
+			numOfSyllables: this.countAllSyllables(text),
 		};
 	}
 
 	countLetters(text: string): number {
-		return text.split('').filter(isLetter).length || 1;
+		return text.match(/\p{L}/gu)?.length || 1;
 	}
 
 	countAllSyllables(text: string) {
+		// let total = 0;
 		const cleaned = text
 			.replace(/[^\p{L}\s]/gu, '')
 			.split(' ')
-			.filter((elem) => elem !== '')
-			.join(' ');
-		return cleaned;
+			.filter((elem) => elem !== '');
+
+		return cleaned.length;
+	}
+
+	countSyllables(word: string) {
+		// use silabizer created for current word
 	}
 }
 
-function isLetter(char: string) {
-	return char.toLowerCase() !== char.toUpperCase();
+export function isLetter(char: string) {
+	return /\p{L}/u.test(char);
 }
 
-function numbersToWords(text: string) {
+export function numbersToWords(text: string) {
 	const numFormat = /^[\-]?[1-9][0-9]*\.?[0-9]+$/;
 	const newText = text
 		.split(' ')

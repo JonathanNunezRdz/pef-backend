@@ -19,7 +19,7 @@
 		"noFallthroughCasesInSwitch": false,
 		"paths": {
 			"@src/*": ["src/*"],
-			"@customTypes": ["types/index.ts"]
+			"@customTypes": ["src/types/index.ts"]
 		}
 	}
 }

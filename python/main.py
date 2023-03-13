@@ -23,7 +23,7 @@ def main():
         print(str(err))
         sys.exit(2)
 
-    filename = '/home/jonas/code/pef-backend/tmp/test.txt'
+    filename = '/home/jonas/Desktop/code/pef/pef-backend/tmp/test.txt'
 
     try:
         data = open(filename)
@@ -33,11 +33,9 @@ def main():
         print('File:', filename, 'not found')
         sys.exit(2)
     
-    text = '''Tengo 1417690.42 pesos'''
+    text = '''Tengo 23 años viviendo en casa pequeña pero moderna en el centro de la ciudad. Mi casa tiene dos habitaciones, un baño, una sala de estar, una cocina y una pequeña terraza. Por las tardes el sol calienta la casa durante horas, así que no suele hacer frío.'''
 
-    num_text = legibilidad.numbers_to_words(text)
-
-    print(text)
+    text = legibilidad.numbers_to_words(text)
 
     avg_letters_per_word, var_letters_per_word = legibilidad.calculate_avg_var_letters_per_word(text)
     if avg_letters_per_word is None or var_letters_per_word is None:

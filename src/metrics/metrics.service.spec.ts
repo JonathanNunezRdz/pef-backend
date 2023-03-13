@@ -1,6 +1,6 @@
-import { Metrics } from '@customTypes';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TEST_TEXT } from '@src/analysis/analysis.service';
+import { Metrics } from '@src/types';
 import { MetricsService } from './metrics.service';
 
 describe('MetricsService', () => {

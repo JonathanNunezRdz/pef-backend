@@ -1,3 +1,7 @@
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { MetricsService } from '@src/metrics/metrics.service';
+import { PrismaService } from '@src/prisma/prisma.service';
 import {
 	BaseAlgorithmScore,
 	Metrics,
@@ -5,10 +9,7 @@ import {
 	PostAnalysisResponse,
 	prismaAlgorithmFindManySelect,
 	PrismaScale,
-} from '@customTypes';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '@src/prisma/prisma.service';
+} from '@src/types';
 
 import { evaluate } from 'mathjs';
 
@@ -19,8 +20,14 @@ import { UtilService } from '../util/util.service';
 export class AnalysisService {
 	constructor(
 		private utilService: UtilService,
-		private prismaService: PrismaService
+		private prismaService: PrismaService,
+		private metricsService: MetricsService
 	) {}
+
+	// test service
+	nativeGetMetrics() {
+		return this.metricsService.getMetrics(TEST_TEXT);
+	}
 
 	// post services
 
@@ -116,7 +123,8 @@ export class AnalysisService {
 	}
 }
 
-export const TEST_TEXT = `Vivo en una casa pequeña pero moderna en el centro 
+export const TEST_TEXT = `Tengo 23 años viviendo en 
+una casa pequeña pero moderna en el centro 
 de la ciudad. Mi casa tiene dos habitaciones, 
 un baño, una sala de estar, una cocina y una pequeña 
 terraza. Por las tardes el sol calienta la casa durante 

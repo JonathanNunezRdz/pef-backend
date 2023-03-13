@@ -1,5 +1,5 @@
-import { PostAnalysisDto, PostAnalysisResponse } from '@customTypes/analysis';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { PostAnalysisDto, PostAnalysisResponse } from '@src/types';
 
 import { AnalysisService } from './analysis.service';
 
@@ -10,5 +10,10 @@ export class AnalysisControler {
 	@Post('')
 	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
 		return this.analysisService.postAnalysis(dto);
+	}
+
+	@Get('test')
+	testMetrics() {
+		return this.analysisService.nativeGetMetrics();
 	}
 }
