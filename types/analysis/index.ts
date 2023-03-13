@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { prismaScaleFindManyInput } from 'types';
+import { prismaScaleFindManyInput } from '..';
 
 export * from './analysis.response';
 export * from './post-analysis.dto';

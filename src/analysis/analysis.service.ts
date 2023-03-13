@@ -1,7 +1,3 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { evaluate } from 'mathjs';
-import { PrismaService } from 'src/prisma/prisma.service';
 import {
 	BaseAlgorithmScore,
 	Metrics,
@@ -9,7 +5,13 @@ import {
 	PostAnalysisResponse,
 	prismaAlgorithmFindManySelect,
 	PrismaScale,
-} from 'types';
+} from '@customTypes';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '@src/prisma/prisma.service';
+
+import { evaluate } from 'mathjs';
+
 import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
 

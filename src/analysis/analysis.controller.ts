@@ -1,5 +1,6 @@
+import { PostAnalysisDto, PostAnalysisResponse } from '@customTypes/analysis';
 import { Body, Controller, Post } from '@nestjs/common';
-import { PostAnalysisDto, PostAnalysisResponse } from 'types';
+
 import { AnalysisService } from './analysis.service';
 
 @Controller('analysis')

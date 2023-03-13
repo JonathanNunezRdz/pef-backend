@@ -21,7 +21,6 @@
 
 import re
 import statistics
-import typing
 
 def count_letters(text: str):
     '''

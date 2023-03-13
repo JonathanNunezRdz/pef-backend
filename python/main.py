@@ -23,6 +23,8 @@ def main():
         print(str(err))
         sys.exit(2)
 
+    filename = '/home/jonas/code/pef-backend/tmp/test.txt'
+
     try:
         data = open(filename)
         text = ''.join([line.replace("\n", "") for line in data])
@@ -31,13 +33,15 @@ def main():
         print('File:', filename, 'not found')
         sys.exit(2)
     
-    # print(text)
+    text = '''Tengo 1417690.42 pesos'''
+
+    num_text = legibilidad.numbers_to_words(text)
+
+    print(text)
 
     avg_letters_per_word, var_letters_per_word = legibilidad.calculate_avg_var_letters_per_word(text)
     if avg_letters_per_word is None or var_letters_per_word is None:
         avg_letters_per_word, var_letters_per_word = 0, 0
-    
-
 
     metrics = {
         'numOfLetters': legibilidad.count_letters(text),
