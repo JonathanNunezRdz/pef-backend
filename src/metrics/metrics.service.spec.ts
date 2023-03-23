@@ -22,12 +22,11 @@ describe('MetricsService', () => {
 
 	it('should count letters', () => {
 		const { numOfLetters } = metrics;
-		expect(numOfLetters).toEqual(189);
+		expect(numOfLetters).toEqual(212);
 	});
 
 	it('should count all syllables', () => {
-		const initialLength = TEST_TEXT.length;
-		const syllables = service.countAllSyllables(TEST_TEXT);
-		expect(syllables.length).toBeLessThanOrEqual(initialLength);
+		const { numOfSyllables } = metrics;
+		expect(numOfSyllables).toEqual(93);
 	});
 });

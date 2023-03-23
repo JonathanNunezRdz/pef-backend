@@ -174,6 +174,18 @@ def calculate_avg_words_per_sentence(text: str):
     return round(words / sentences,2)
 
 
+def calculate_avg_sentences_per_hundred_words(text: str):
+    sentences = count_sentences(text)
+    words = count_words(numbers_to_words(text))
+    return 100 * sentences / words
+
+
+def calculate_avg_syllables_per_hundred_words(text: str):
+    syllables = count_all_syllables(numbers_to_words(text))
+    words = count_words(numbers_to_words(text))
+    return 100 * syllables / words
+
+
 def fernandez_huerta(text: str):
     '''
     Fernández Huerta readability score
@@ -232,16 +244,6 @@ def mu(text: str):
 
     mu = (n / (n - 1)) * (mean / variance) * 100
     return round(mu, 2)
-
-def calculate_avg_sentences_per_hundred_words(text: str):
-    sentences = count_sentences(text)
-    words = count_words(numbers_to_words(text))
-    return 100 * sentences / words
-
-def calculate_avg_syllables_per_hundred_words(text: str):
-    syllables = count_all_syllables(numbers_to_words(text))
-    words = count_words(numbers_to_words(text))
-    return 100 * syllables / words
     
     
 def crawford(text: str):

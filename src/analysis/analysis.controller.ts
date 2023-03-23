@@ -13,7 +13,7 @@ export class AnalysisControler {
 	}
 
 	@Get('test')
-	testMetrics() {
-		return this.analysisService.nativeGetMetrics();
+	testMetrics(@Body() dto: PostAnalysisDto) {
+		return this.analysisService.nativeGetMetrics(dto.text);
 	}
 }

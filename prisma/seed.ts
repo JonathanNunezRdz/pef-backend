@@ -217,7 +217,7 @@ async function main() {
 				min: 0,
 				unit: 'nivel de perspicuidad',
 				formula:
-					'206.835 - 62.3 * (numOfSyllables / numOfWords) - numOfWords / numOfSentences',
+					'206.835 - ((62.3 * numOfSyllables) / numOfWords) - (numOfWords / numOfSentences)',
 				variables: {
 					createMany: {
 						data: [

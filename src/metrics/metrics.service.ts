@@ -1,38 +1,72 @@
 import { Injectable } from '@nestjs/common';
 import { Metrics } from '@src/types';
-import { UtilService } from '@src/util/util.service';
-import { numToWord } from './helpers';
+import { variance } from 'mathjs';
+import { numToWord, Silabizer } from './helpers';
+
+// const alphabet = '([\p{L}])';
+// const prefixes = '(Sr|Sta|Sra|Srta|Dr)[.]';
+// const suffixes = '(Inc|Ltd|Jr|Sr|Co)'
+// const starters = ''
 
 @Injectable()
 export class MetricsService {
-	constructor(private utilService: UtilService) {}
-
-	getMetrics(text: string): Partial<Metrics> {
+	getMetrics(text: string): Metrics {
 		debugger;
-		text = numbersToWords(text);
+		text = numbersToWords(text.toLowerCase());
+
+		const words = this.getWords(text);
+		const numOfLetters = this.countLetters(words);
+		const syllables = this.getSyllables(words);
+		const numOfSyllables = this.countAllSyllables(syllables);
+		const numOfSentences = this.countSentences(text);
+
+		const lengths = words.map((word) => word.length);
 
 		return {
-			numOfLetters: this.countLetters(text),
-			numOfSyllables: this.countAllSyllables(text),
+			numOfLetters,
+			numOfSyllables,
+			numOfWords: words.length,
+			numOfSentences,
+			avgLettersPerWord: numOfLetters / words.length,
+			avgSyllablePerWord: numOfSyllables / words.length,
+			avgWordsPerSentence: words.length / numOfSentences,
+			avgSentencesPerHundredWords: (100 * numOfSentences) / words.length,
+			avgSyllablesPerHundredWords: (100 * numOfSyllables) / words.length,
+			varLettersPerWord: variance(...lengths),
 		};
 	}
 
-	countLetters(text: string): number {
-		return text.match(/\p{L}/gu)?.length || 1;
+	getWords(text: string): string[] {
+		const words = text.match(/\p{L}+/gu);
+		if (!words) throw new Error('no matches for words');
+		return words;
 	}
 
-	countAllSyllables(text: string) {
-		// let total = 0;
-		const cleaned = text
-			.replace(/[^\p{L}\s]/gu, '')
-			.split(' ')
-			.filter((elem) => elem !== '');
-
-		return cleaned.length;
+	countLetters(words: string[]): number {
+		return words.reduce((acc, curr) => acc + curr.length, 0) || 1;
 	}
 
-	countSyllables(word: string) {
-		// use silabizer created for current word
+	getSyllables(words: string[]) {
+		const allSyllables = words.map((word) => new Silabizer(word));
+		return allSyllables;
+	}
+
+	countAllSyllables(syllables: Silabizer[]) {
+		return syllables.reduce((acc, curr) => acc + curr.totalSyllables, 0);
+	}
+
+	getSentences() {
+		// transform this answer to javascript and that fits the spanish language
+		// https://stackoverflow.com/questions/4576077/how-can-i-split-a-text-into-sentences#answer-31505798
+	}
+
+	countSentences(text: string) {
+		return (
+			text
+				.replace('\n', '')
+				.split(/[.!?:;]/)
+				.filter((elem) => elem !== '').length || 1
+		);
 	}
 }
 

@@ -25,15 +25,15 @@ export class AnalysisService {
 	) {}
 
 	// test service
-	nativeGetMetrics() {
-		return this.metricsService.getMetrics(TEST_TEXT);
+	nativeGetMetrics(text: string) {
+		return this.metricsService.getMetrics(text);
 	}
 
 	// post services
 
 	async postAnalysis(dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
 		const { text } = dto;
-		const metrics = this.getMetrics(text);
+		const metrics = this.metricsService.getMetrics(text);
 
 		const algorithms = await this.prismaService.algorithm.findMany({
 			select: prismaAlgorithmFindManySelect.select,
@@ -123,12 +123,7 @@ export class AnalysisService {
 	}
 }
 
-export const TEST_TEXT = `Tengo 23 años viviendo en 
-una casa pequeña pero moderna en el centro 
-de la ciudad. Mi casa tiene dos habitaciones, 
-un baño, una sala de estar, una cocina y una pequeña 
-terraza. Por las tardes el sol calienta la casa durante 
-horas, así que no suele hacer frío.`;
+export const TEST_TEXT = `Tengo 23 años viviendo en una casa pequeña pero moderna en el centro de la ciudad. Mi casa tiene dos habitaciones, un baño, una sala de estar, una cocina y una pequeña terraza. Por las tardes el sol calienta la casa durante horas, así que no suele hacer frío.`;
 
 /**
  * total de letras = 189
