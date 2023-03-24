@@ -1,5 +1,12 @@
 export type BaseScore = {
 	value: number;
 	level?: string;
-	extra?: object;
+	extra?: ScoreExtra;
+};
+
+export type ScoreExtra = {
+	[k: string]: {
+		label: string;
+		value: string;
+	};
 };

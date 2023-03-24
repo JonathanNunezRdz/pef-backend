@@ -1,6 +1,6 @@
 // TODO: type out the response that the frontend is going to receive
 
-import { BaseAlgorithmScore } from '..';
+import { BaseAlgorithmScore, Metrics } from '..';
 
 export type AnalysisResponse = {
 	id: string;
@@ -8,6 +8,7 @@ export type AnalysisResponse = {
 	updatedAt: Date;
 
 	scores: BaseAlgorithmScore[];
+	metrics: Metrics;
 };
 
 export type PostAnalysisResponse = AnalysisResponse;

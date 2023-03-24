@@ -57,6 +57,9 @@ async function main() {
 		return variable.id;
 	};
 
+	// modify formula based on this: https://scielo.isciii.es/scielo.php?script=sci_arttext&pid=S1135-57272002000400007&lng=en&nrm=iso
+	// add an option for users to select a desired amount of "rounds" (muestras) for their query
+	// also provide a default and an explanation for this option
 	await prisma.$transaction([
 		prisma.algorithm.create({
 			data: {
@@ -65,7 +68,7 @@ async function main() {
 				min: 0,
 				unit: 'puntos de lecturabilidad',
 				formula:
-					'206.84 - 60 * avgSyllablePerWord - 1.02 * avgWordsPerSentence',
+					'206.84 - 60 * avgSyllablePerWord - 102 * (numOfSentences / numOfWords)',
 				variables: {
 					createMany: {
 						data: [
@@ -74,9 +77,10 @@ async function main() {
 									extractVariableId('avgSyllablePerWord'),
 							},
 							{
-								variableId: extractVariableId(
-									'avgWordsPerSentence'
-								),
+								variableId: extractVariableId('numOfSentences'),
+							},
+							{
+								variableId: extractVariableId('numOfWords'),
 							},
 						],
 					},

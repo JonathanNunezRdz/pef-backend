@@ -1,5 +1,4 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
@@ -9,6 +8,7 @@ import {
 	PostAnalysisResponse,
 	prismaAlgorithmFindManySelect,
 	PrismaScale,
+	ScoreExtra,
 } from '@src/types';
 
 import { evaluate } from 'mathjs';
@@ -75,6 +75,7 @@ export class AnalysisService {
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			scores,
+			metrics,
 		};
 	}
 
@@ -99,7 +100,7 @@ export class AnalysisService {
 		for (let i = 0; i < scales.length; i++) {
 			if (value < scales[i].upperLimit) {
 				if (scales[i].extra) {
-					const extra = scales[i].extra as Prisma.JsonObject;
+					const extra = scales[i].extra as ScoreExtra;
 					return {
 						value,
 						level: scales[i].level,
