@@ -15,7 +15,6 @@ import { evaluate } from 'mathjs';
 
 import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
-
 @Injectable()
 export class AnalysisService {
 	constructor(
@@ -26,14 +25,16 @@ export class AnalysisService {
 
 	// test service
 	nativeGetMetrics(text: string) {
-		return this.metricsService.getMetrics(text);
+		return this.metricsService.getMetrics({ text, numOfSamples: 1 });
 	}
 
 	// post services
 
 	async postAnalysis(dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
-		const { text } = dto;
-		const metrics = this.metricsService.getMetrics(text);
+		// if (franc.franc(dto.text) !== 'spa')
+		// 	throw new BadRequestException('este lenguage no es espanol');
+
+		const metrics = this.metricsService.getMetrics(dto);
 
 		const algorithms = await this.prismaService.algorithm.findMany({
 			select: prismaAlgorithmFindManySelect.select,
@@ -56,7 +57,9 @@ export class AnalysisService {
 						};
 					}, {});
 
-				const value = evaluate(formula, variables);
+				let value = evaluate(formula, variables);
+				value = Math.min(value, algorithm.max);
+				value = Math.max(algorithm.min, value);
 				const score = this.getAlgorithmScore(scales, value);
 
 				return {
@@ -98,7 +101,7 @@ export class AnalysisService {
 			};
 		}
 		for (let i = 0; i < scales.length; i++) {
-			if (value < scales[i].upperLimit) {
+			if (value <= scales[i].upperLimit) {
 				if (scales[i].extra) {
 					const extra = scales[i].extra as ScoreExtra;
 					return {
@@ -123,6 +126,20 @@ export class AnalysisService {
 		return Math.max(0, scoreNum);
 	}
 }
+
+// function isSpanish(text: string): boolean {
+// 	const spanishRegex = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+/g;
+// 	const matches = text.match(spanishRegex);
+// 	if (matches === null) {
+// 		return false;
+// 	}
+// 	const numWords = matches.length;
+// 	const numSpanishWords = matches.filter((word) =>
+// 		/[áéíóúÁÉÍÓÚñÑüÜ]/.test(word)
+// 	).length;
+// 	const percentSpanishWords = numSpanishWords / numWords;
+// 	return percentSpanishWords >= 0.2;
+// }
 
 export const TEST_TEXT = `Tengo 23 años viviendo en una casa pequeña pero moderna en el centro de la ciudad. Mi casa tiene dos habitaciones, un baño, una sala de estar, una cocina y una pequeña terraza. Por las tardes el sol calienta la casa durante horas, así que no suele hacer frío.`;
 

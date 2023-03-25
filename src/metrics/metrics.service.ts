@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Metrics } from '@src/types';
+import { GetMetricsService, Metrics } from '@src/types';
 import { variance } from 'mathjs';
 import { numToWord, Silabizer } from './helpers';
 
@@ -10,9 +10,9 @@ import { numToWord, Silabizer } from './helpers';
 
 @Injectable()
 export class MetricsService {
-	getMetrics(text: string): Metrics {
+	getMetrics({ text, numOfSamples }: GetMetricsService): Metrics {
 		debugger;
-		text = numbersToWords(text.toLowerCase());
+		text = numbersToWords(text);
 
 		const words = this.getWords(text);
 		const numOfLetters = this.countLetters(words);
@@ -33,7 +33,16 @@ export class MetricsService {
 			avgSentencesPerHundredWords: (100 * numOfSentences) / words.length,
 			avgSyllablesPerHundredWords: (100 * numOfSyllables) / words.length,
 			varLettersPerWord: variance(...lengths),
+			numOfSamples,
 		};
+	}
+
+	getAveragePerHundredWords(words: string[], numOfSamples: number) {
+		// const capitalLettersIndexes: number[] = [];
+		for (let i = 0; i < numOfSamples; i++) {
+			const index = Math.random() * words.length - 100;
+			// si el texto tiene menos de 100 palabras, user todo el texto,
+		}
 	}
 
 	getWords(text: string): string[] {
@@ -47,7 +56,9 @@ export class MetricsService {
 	}
 
 	getSyllables(words: string[]) {
-		const allSyllables = words.map((word) => new Silabizer(word));
+		const allSyllables = words.map(
+			(word) => new Silabizer(word.toLowerCase())
+		);
 		return allSyllables;
 	}
 
@@ -87,3 +98,6 @@ export function numbersToWords(text: string) {
 		.join(' ');
 	return newText;
 }
+
+// write a function that returns a number between 0 and x
+// but only retr

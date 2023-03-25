@@ -46,6 +46,9 @@ async function main() {
 			{
 				name: 'varLettersPerWord',
 			},
+			{
+				name: 'numOfSamples',
+			},
 		],
 	});
 
@@ -68,19 +71,22 @@ async function main() {
 				min: 0,
 				unit: 'puntos de lecturabilidad',
 				formula:
-					'206.84 - 60 * avgSyllablePerWord - 102 * (numOfSentences / numOfWords)',
+					'206.84 - 0.60 * avgSyllablesPerHundredWords - 1.02 * avgSentencesPerHundredWords',
 				variables: {
 					createMany: {
 						data: [
 							{
-								variableId:
-									extractVariableId('avgSyllablePerWord'),
+								variableId: extractVariableId(
+									'avgSyllablesPerHundredWords'
+								),
 							},
 							{
-								variableId: extractVariableId('numOfSentences'),
+								variableId: extractVariableId(
+									'avgSentencesPerHundredWords'
+								),
 							},
 							{
-								variableId: extractVariableId('numOfWords'),
+								variableId: extractVariableId('numOfSamples'),
 							},
 						],
 					},

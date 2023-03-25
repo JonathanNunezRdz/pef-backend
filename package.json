@@ -26,6 +26,7 @@
 		"seed:db": "npx prisma db seed"
 	},
 	"dependencies": {
+		"@google-cloud/language": "^5.2.1",
 		"@nestjs/common": "^9.0.0",
 		"@nestjs/config": "^2.2.0",
 		"@nestjs/core": "^9.0.0",
@@ -35,7 +36,6 @@
 		"argon2": "^0.30.3",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.14.0",
-		"languagedetect": "^2.0.0",
 		"lorca-nlp": "^1.0.12",
 		"mathjs": "^11.5.1",
 		"reflect-metadata": "^0.1.13",

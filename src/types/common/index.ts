@@ -9,4 +9,6 @@ export type Metrics = {
 	avgSentencesPerHundredWords: number;
 	avgSyllablesPerHundredWords: number;
 	varLettersPerWord: number;
+
+	numOfSamples: number;
 };
