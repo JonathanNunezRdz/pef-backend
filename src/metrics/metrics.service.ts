@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { GetMetricsService, Metrics } from '@src/types';
 import { variance } from 'mathjs';
-import { numToWord, Silabizer } from './helpers';
+import { Silabizer, numToWord } from './helpers';
 
 // const alphabet = '([\p{L}])';
 // const prefixes = '(Sr|Sta|Sra|Srta|Dr)[.]';
 // const suffixes = '(Inc|Ltd|Jr|Sr|Co)'
 // const starters = ''
 
+export function sanitizeText(text: string): string {
+	return text.replace(/[«»]/g, `"`);
+}
+
 @Injectable()
 export class MetricsService {
 	getMetrics({ text, numOfSamples }: GetMetricsService): Metrics {
 		debugger;
 		text = numbersToWords(text);
+		text = sanitizeText(text);
 
 		const words = this.getWords(text);
 		const numOfLetters = this.countLetters(words);
@@ -23,6 +28,16 @@ export class MetricsService {
 
 		const lengths = words.map((word) => word.length);
 
+		/**
+		 * TODO: refactor getAverageSentencesAndSyllablesPerHundredWords method to not do so much work
+		 * that has already deen done, e.g. separate into words, syllables, etc.
+		 *
+		 * Do that before calling this method and send them as arguments
+		 *
+		 * Also, create a class that encapsulate what a sentence is and contains:
+		 * A sentence has its text, the indexes for the words it has and methos that extract each word providing
+		 * those indexes.
+		 */
 		const { avgSentencesPerHundredWords, avgSyllablesPerHundredWords } =
 			this.getAverageSentencesAndSyllablesPerHundredWords(
 				sentences,
@@ -62,11 +77,14 @@ export class MetricsService {
 		 * Exceptions:
 		 * When the text is less or equal than 100 words, just count the sentences and return
 		 */
-		debugger;
 		const numOfSentences = sentences.length || 1;
-		const wordsPerSentence = sentences.map((sentence) =>
-			this.getWords(sentence)
-		);
+
+		// ERROR: test text "Viaje a la semilla" throws error here
+		const wordsPerSentence = sentences.map((sentence) => {
+			// console.log(sentence);
+			if (sentence.match(/\p{L}+/gu)) return this.getWords(sentence);
+			return [];
+		});
 		let lastIndex = numOfSentences - 1;
 		let totalWords = 0;
 		for (let i = numOfSentences - 1; i >= 0; i--) {
