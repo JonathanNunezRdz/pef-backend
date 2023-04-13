@@ -9,3 +9,15 @@ export class PostAnalysisDto {
 	@IsOptional()
 	numOfSamples: number;
 }
+
+export class PostAnalysisWithFileDto {
+	@IsInt()
+	@Min(1)
+	@IsOptional()
+	numOfSamples?: number;
+}
+
+export interface PostAnalysisWithFileService {
+	numOfSamples: number;
+	document: Express.Multer.File;
+}

@@ -21,6 +21,7 @@
 		"paths": {
 			"@src/*": ["src/*"],
 			"@customTypes": ["src/types/index.ts"]
-		}
+		},
+		"moduleResolution": "node"
 	}
 }

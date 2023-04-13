@@ -6,12 +6,14 @@ import {
 	Metrics,
 	PostAnalysisDto,
 	PostAnalysisResponse,
-	prismaAlgorithmFindManySelect,
+	PostAnalysisWithFileService,
 	PrismaScale,
 	ScoreExtra,
+	prismaAlgorithmFindManySelect,
 } from '@src/types';
 
 import { evaluate } from 'mathjs';
+import pdf from 'pdf-parse';
 
 import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
@@ -23,9 +25,10 @@ export class AnalysisService {
 		private metricsService: MetricsService
 	) {}
 
-	// test service
-	nativeGetMetrics(text: string) {
-		return this.metricsService.getMetrics({ text, numOfSamples: 1 });
+	async postAnalysisWithFile(dto: PostAnalysisWithFileService) {
+		const { document, numOfSamples } = dto;
+		const result = await pdf(document.buffer);
+		return this.postAnalysis({ text: result.text, numOfSamples });
 	}
 
 	// post services

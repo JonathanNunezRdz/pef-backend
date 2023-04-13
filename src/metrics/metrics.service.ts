@@ -8,16 +8,12 @@ import { Silabizer, numToWord } from './helpers';
 // const suffixes = '(Inc|Ltd|Jr|Sr|Co)'
 // const starters = ''
 
-export function sanitizeText(text: string): string {
-	return text.replace(/[«»]/g, `"`);
-}
-
 @Injectable()
 export class MetricsService {
 	getMetrics({ text, numOfSamples }: GetMetricsService): Metrics {
 		debugger;
-		text = numbersToWords(text);
 		text = sanitizeText(text);
+		text = numbersToWords(text);
 
 		const words = this.getWords(text);
 		const numOfLetters = this.countLetters(words);
@@ -209,6 +205,10 @@ export class MetricsService {
 				.filter((elem) => elem !== '').length || 1
 		);
 	}
+}
+
+export function sanitizeText(text: string): string {
+	return text.replace(/[«»]/g, `"`).replace(/(\r\n|\n|\r)/gm, '');
 }
 
 export function isLetter(char: string) {

@@ -1,6 +1,17 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { PostAnalysisDto, PostAnalysisResponse } from '@src/types';
+import {
+	Body,
+	Controller,
+	Post,
+	UploadedFile,
+	UseInterceptors,
+} from '@nestjs/common';
+import {
+	PostAnalysisDto,
+	PostAnalysisResponse,
+	PostAnalysisWithFileDto,
+} from '@src/types';
 
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AnalysisService } from './analysis.service';
 
 @Controller('analysis')
@@ -12,8 +23,15 @@ export class AnalysisControler {
 		return this.analysisService.postAnalysis(dto);
 	}
 
-	@Get('test')
-	testMetrics(@Body() dto: PostAnalysisDto) {
-		return this.analysisService.nativeGetMetrics(dto.text);
+	@Post('file')
+	@UseInterceptors(FileInterceptor('file'))
+	postAnalysisWithFile(
+		@Body() postDto: PostAnalysisWithFileDto,
+		@UploadedFile() file: Express.Multer.File
+	) {
+		return this.analysisService.postAnalysisWithFile({
+			document: file,
+			numOfSamples: postDto.numOfSamples || 5,
+		});
 	}
 }
