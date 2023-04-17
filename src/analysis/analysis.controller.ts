@@ -1,6 +1,8 @@
 import {
 	Body,
 	Controller,
+	FileTypeValidator,
+	ParseFilePipe,
 	Post,
 	UploadedFile,
 	UseInterceptors,
@@ -27,7 +29,16 @@ export class AnalysisControler {
 	@UseInterceptors(FileInterceptor('file'))
 	postAnalysisWithFile(
 		@Body() postDto: PostAnalysisWithFileDto,
-		@UploadedFile() file: Express.Multer.File
+		@UploadedFile(
+			new ParseFilePipe({
+				validators: [
+					new FileTypeValidator({
+						fileType: /(application\/pdf|text\/plain)/,
+					}),
+				],
+			})
+		)
+		file: Express.Multer.File
 	) {
 		return this.analysisService.postAnalysisWithFile({
 			document: file,

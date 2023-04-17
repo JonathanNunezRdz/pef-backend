@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	Injectable,
+	InternalServerErrorException,
+	NotAcceptableException,
+} from '@nestjs/common';
 import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
@@ -27,8 +31,17 @@ export class AnalysisService {
 
 	async postAnalysisWithFile(dto: PostAnalysisWithFileService) {
 		const { document, numOfSamples } = dto;
-		const result = await pdf(document.buffer);
-		return this.postAnalysis({ text: result.text, numOfSamples });
+		let text: string;
+		if (document.mimetype === 'application/pdf') {
+			const result = await pdf(document.buffer);
+			text = result.text;
+		} else if (document.mimetype === 'text/plain') {
+			text = document.buffer.toString();
+		} else {
+			throw new NotAcceptableException('file format not supported');
+		}
+
+		return this.postAnalysis({ text, numOfSamples });
 	}
 
 	// post services
