@@ -12,10 +12,9 @@ import { Silabizer, numToWord } from './helpers';
 export class MetricsService {
 	getMetrics({ text, numOfSamples }: GetMetricsService): Metrics {
 		debugger;
-		console.log(text);
+
 		text = sanitizeText(text);
 		text = numbersToWords(text);
-		console.log(text);
 
 		const words = this.getWords(text);
 		const numOfLetters = this.countLetters(words);

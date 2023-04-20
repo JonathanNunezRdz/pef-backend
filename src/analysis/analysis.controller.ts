@@ -22,11 +22,14 @@ export class AnalysisControler {
 
 	@Post('')
 	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
-		return this.analysisService.postAnalysis(dto);
+		return this.analysisService.postAnalysis({
+			text: dto.text,
+			numOfSamples: dto.numOfSamples || 5,
+		});
 	}
 
 	@Post('file')
-	@UseInterceptors(FileInterceptor('file'))
+	@UseInterceptors(FileInterceptor('document'))
 	postAnalysisWithFile(
 		@Body() postDto: PostAnalysisWithFileDto,
 		@UploadedFile(
@@ -38,10 +41,10 @@ export class AnalysisControler {
 				],
 			})
 		)
-		file: Express.Multer.File
+		document: Express.Multer.File
 	) {
 		return this.analysisService.postAnalysisWithFile({
-			document: file,
+			document,
 			numOfSamples: postDto.numOfSamples || 5,
 		});
 	}

@@ -8,8 +8,8 @@ import { PrismaService } from '@src/prisma/prisma.service';
 import {
 	BaseAlgorithmScore,
 	Metrics,
-	PostAnalysisDto,
 	PostAnalysisResponse,
+	PostAnalysisService,
 	PostAnalysisWithFileService,
 	PrismaScale,
 	ScoreExtra,
@@ -46,7 +46,9 @@ export class AnalysisService {
 
 	// post services
 
-	async postAnalysis(dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
+	async postAnalysis(
+		dto: PostAnalysisService
+	): Promise<PostAnalysisResponse> {
 		// if (franc.franc(dto.text) !== 'spa')
 		// 	throw new BadRequestException('este lenguage no es espanol');
 
