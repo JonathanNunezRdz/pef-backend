@@ -19,6 +19,16 @@ export class PostAnalysisWithFileDto {
 	numOfSamples?: number;
 }
 
+export class PostAnalysisWithUrlDto {
+	@IsString()
+	url: string;
+
+	@IsInt()
+	@Min(1)
+	@IsOptional()
+	numOfSamples?: number;
+}
+
 export interface PostAnalysisWithFileService {
 	numOfSamples: number;
 	document: Express.Multer.File;

@@ -1,8 +1,14 @@
 import {
+	BadRequestException,
 	Injectable,
 	InternalServerErrorException,
 	NotAcceptableException,
 } from '@nestjs/common';
+import { convert } from 'html-to-text';
+import { evaluate } from 'mathjs';
+import pdf from 'pdf-parse';
+import { v4 } from 'uuid';
+
 import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
@@ -11,16 +17,13 @@ import {
 	PostAnalysisResponse,
 	PostAnalysisService,
 	PostAnalysisWithFileService,
+	PostAnalysisWithUrlDto,
 	PrismaScale,
 	ScoreExtra,
 	prismaAlgorithmFindManySelect,
 } from '@src/types';
-
-import { evaluate } from 'mathjs';
-import pdf from 'pdf-parse';
-
-import { v4 } from 'uuid';
 import { UtilService } from '../util/util.service';
+
 @Injectable()
 export class AnalysisService {
 	constructor(
@@ -28,6 +31,27 @@ export class AnalysisService {
 		private prismaService: PrismaService,
 		private metricsService: MetricsService
 	) {}
+
+	async postAnalysisWithUrl(dto: PostAnalysisWithUrlDto) {
+		if (!this.utilService.validateUrl(dto.url))
+			throw new BadRequestException('URL no válido');
+
+		// extract content from url
+		console.log(dto.url);
+
+		const res = await fetch(dto.url, {
+			method: 'GET',
+		});
+		const page = await res.text();
+		const parsedText = convert(page, {
+			selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+		});
+		console.log(parsedText);
+		return this.postAnalysis({
+			text: parsedText,
+			numOfSamples: dto.numOfSamples || 5,
+		});
+	}
 
 	async postAnalysisWithFile(dto: PostAnalysisWithFileService) {
 		const { document, numOfSamples } = dto;

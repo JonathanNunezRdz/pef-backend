@@ -11,6 +11,7 @@ import {
 	PostAnalysisDto,
 	PostAnalysisResponse,
 	PostAnalysisWithFileDto,
+	PostAnalysisWithUrlDto,
 } from '@src/types';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -46,6 +47,14 @@ export class AnalysisControler {
 		return this.analysisService.postAnalysisWithFile({
 			document,
 			numOfSamples: postDto.numOfSamples || 5,
+		});
+	}
+
+	@Post('url')
+	postAnalysisWithUrl(@Body() dto: PostAnalysisWithUrlDto): Promise<any> {
+		return this.analysisService.postAnalysisWithUrl({
+			url: dto.url,
+			numOfSamples: dto.numOfSamples || 5,
 		});
 	}
 }

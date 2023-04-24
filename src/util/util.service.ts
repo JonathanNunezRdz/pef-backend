@@ -12,6 +12,15 @@ import { v4 } from 'uuid';
 export class UtilService {
 	constructor(private configService: ConfigService) {}
 
+	validateUrl(url: string) {
+		try {
+			new URL(url);
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
+
 	/**
 	 * Save text to file in /tmp
 	 * @param data raw text to save
