@@ -17,6 +17,9 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AnalysisService } from './analysis.service';
 
+const mimeTypeRegexp =
+	/(application\/pdf|text\/plain|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/;
+
 @Controller('analysis')
 export class AnalysisControler {
 	constructor(private analysisService: AnalysisService) {}
@@ -37,7 +40,7 @@ export class AnalysisControler {
 			new ParseFilePipe({
 				validators: [
 					new FileTypeValidator({
-						fileType: /(application\/pdf|text\/plain)/,
+						fileType: mimeTypeRegexp,
 					}),
 				],
 			})

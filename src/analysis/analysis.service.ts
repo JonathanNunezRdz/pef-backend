@@ -8,6 +8,7 @@ import { convert } from 'html-to-text';
 import { evaluate } from 'mathjs';
 import pdf from 'pdf-parse';
 import { v4 } from 'uuid';
+import WordExtractor from 'word-extractor';
 
 import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
@@ -61,6 +62,15 @@ export class AnalysisService {
 			text = result.text;
 		} else if (document.mimetype === 'text/plain') {
 			text = document.buffer.toString();
+		} else if (
+			/(application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/.test(
+				document.mimetype
+			)
+		) {
+			// extract contents from doc with node-extractor
+			const extractor = new WordExtractor();
+			const parsedDocument = await extractor.extract(document.buffer);
+			text = parsedDocument.getBody();
 		} else {
 			throw new NotAcceptableException('file format not supported');
 		}
