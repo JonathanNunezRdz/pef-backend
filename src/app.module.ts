@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AnalysisModule } from './analysis/analysis.module';
+import { AuthModule } from './auth/auth.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { AppLoggerMiddleware } from './middleware';
 import { PrismaModule } from './prisma/prisma.module';
@@ -18,6 +19,7 @@ import { UtilModule } from './util/util.module';
 		ResultModule,
 		AnalysisModule,
 		MetricsModule,
+		AuthModule,
 	],
 	controllers: [],
 	providers: [],
