@@ -3,12 +3,15 @@ import {
 	Controller,
 	Delete,
 	Get,
-	Param,
+	HttpCode,
+	HttpStatus,
 	Patch,
-	Post,
+	UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from '@prisma/client';
+import { GetUser } from '@src/auth/decorator';
+import { JwtGuard } from '@src/auth/guard';
+import { PatchUserDto } from '@src/types/user';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -16,31 +19,28 @@ export class UserController {
 	constructor(private readonly userService: UserService) {}
 
 	// get routes
+	@UseGuards(JwtGuard)
 	@Get('me')
-	getMe() {
-		return this.userService.findAll();
-	}
-
-	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.userService.findOne(+id);
+	getMe(@GetUser('id') userId: User['id']) {
+		return this.userService.getMe(userId);
 	}
 
 	// post routes
-	@Post()
-	create(@Body() createUserDto: CreateUserDto) {
-		return this.userService.create(createUserDto);
-	}
 
 	// put/patch routes
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-		return this.userService.update(+id, updateUserDto);
+	@UseGuards(JwtGuard)
+	@Patch()
+	patchUser(
+		@GetUser('id') userId: User['id'],
+		@Body() patchUserDto: PatchUserDto
+	) {
+		return this.userService.patchUser({ patchUserDto, userId });
 	}
 
 	// delete routes
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.userService.remove(+id);
+	@HttpCode(HttpStatus.OK)
+	@Delete()
+	deleteUser(@GetUser('id') userId: User['id']) {
+		return this.userService.deleteUser(userId);
 	}
 }

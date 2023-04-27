@@ -5,6 +5,7 @@ import {
 	ParseFilePipe,
 	Post,
 	UploadedFile,
+	UseGuards,
 	UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -15,6 +16,7 @@ import {
 } from '@src/types';
 
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtGuard } from '@src/auth/guard';
 import { AnalysisService } from './analysis.service';
 
 const mimeTypeRegexp =
@@ -24,6 +26,7 @@ const mimeTypeRegexp =
 export class AnalysisControler {
 	constructor(private analysisService: AnalysisService) {}
 
+	@UseGuards(JwtGuard)
 	@Post('')
 	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
 		return this.analysisService.postAnalysis({

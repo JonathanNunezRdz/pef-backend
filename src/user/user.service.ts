@@ -1,28 +1,87 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+	Injectable,
+	InternalServerErrorException,
+	NotFoundException,
+} from '@nestjs/common';
+import { User } from '@prisma/client';
+import { PrismaService } from '@src/prisma/prisma.service';
+import {
+	GetUserResponse,
+	PatchUserResponse,
+	PatchUserService,
+} from '@src/types/user';
 
 @Injectable()
 export class UserService {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	create(createUserDto: CreateUserDto) {
-		return 'This action adds a new user';
+	constructor(private prisma: PrismaService) {}
+
+	async getMe(userId: User['id']): Promise<GetUserResponse> {
+		const rawUser = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				id: true,
+				email: true,
+				firstName: true,
+				lastName: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		if (!rawUser) throw new NotFoundException('usuario no existente');
+
+		return rawUser;
 	}
 
-	findAll() {
-		return `This action returns all user`;
+	async patchUser(dto: PatchUserService): Promise<PatchUserResponse> {
+		const { patchUserDto, userId } = dto;
+		const { firstName, lastName } = patchUserDto;
+
+		const oldUser = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		if (!oldUser) throw new NotFoundException('usuario no existente');
+
+		const updatedUser = await this.prisma.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				firstName,
+				lastName,
+			},
+			select: {
+				id: true,
+				email: true,
+				firstName: true,
+				lastName: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		return updatedUser;
 	}
 
-	findOne(id: number) {
-		return `This action returns a #${id} user`;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	update(id: number, updateUserDto: UpdateUserDto) {
-		return `This action updates a #${id} user`;
-	}
-
-	remove(id: number) {
-		return `This action removes a #${id} user`;
+	async deleteUser(userId: User['id']): Promise<void> {
+		try {
+			await this.prisma.user.delete({
+				where: {
+					id: userId,
+				},
+			});
+		} catch (error) {
+			throw new InternalServerErrorException(
+				'el usuario no pudo ser eliminado, intenta más tarde'
+			);
+		}
 	}
 }
