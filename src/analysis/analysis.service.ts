@@ -14,6 +14,8 @@ import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
 	BaseAlgorithmScore,
+	GetAnalysisResponse,
+	GetAnalysisService,
 	Metrics,
 	PostAnalysisResponse,
 	PostAnalysisService,
@@ -28,13 +30,64 @@ import { UtilService } from '../util/util.service';
 @Injectable()
 export class AnalysisService {
 	constructor(
-		private utilService: UtilService,
-		private prismaService: PrismaService,
-		private metricsService: MetricsService
+		private util: UtilService,
+		private prisma: PrismaService,
+		private metrics: MetricsService
 	) {}
 
+	// get services
+
+	async getAnalysis(dto: GetAnalysisService): Promise<GetAnalysisResponse> {
+		const { id, page, limit } = dto;
+		const totalAnalysis = await this.prisma.analysisResult.count({
+			where: {
+				user: {
+					id,
+				},
+			},
+		});
+
+		const rawAnalysis = await this.prisma.analysisResult.findMany({
+			where: {
+				user: {
+					id,
+				},
+			},
+			select: {
+				id: true,
+				createdAt: true,
+				scores: {
+					select: {
+						id: true,
+						dificulty: true,
+						value: true,
+						algorithm: {
+							select: {
+								name: true,
+								unit: true,
+								max: true,
+							},
+						},
+					},
+				},
+			},
+			take: limit,
+			skip: (page - 1) * limit,
+			orderBy: {
+				createdAt: 'asc',
+			},
+		});
+
+		return {
+			data: rawAnalysis,
+			totalAnalysis,
+		};
+	}
+
+	// post services
+
 	async postAnalysisWithUrl(dto: PostAnalysisWithUrlDto) {
-		if (!this.utilService.validateUrl(dto.url))
+		if (!this.util.validateUrl(dto.url))
 			throw new BadRequestException('URL no válido');
 
 		const res = await fetch(dto.url, {
@@ -68,7 +121,7 @@ export class AnalysisService {
 			text = document.buffer.toString();
 		}
 		// if format is .doc/.docx
-		else if (this.utilService.validateDOCX(document.mimetype)) {
+		else if (this.util.validateDOCX(document.mimetype)) {
 			const extractor = new WordExtractor();
 			const parsedDocument = await extractor.extract(document.buffer);
 			text = parsedDocument.getBody();
@@ -86,9 +139,9 @@ export class AnalysisService {
 	): Promise<PostAnalysisResponse> {
 		// future feature -> detect is text is in spanish
 
-		const metrics = this.metricsService.getMetrics(dto);
+		const metrics = this.metrics.getMetrics(dto);
 
-		const algorithms = await this.prismaService.algorithm.findMany({
+		const algorithms = await this.prisma.algorithm.findMany({
 			select: prismaAlgorithmFindManySelect.select,
 		});
 
@@ -137,9 +190,9 @@ export class AnalysisService {
 	// Helper services
 
 	getMetrics(text: string): Metrics {
-		const file = this.utilService.writeFile(text);
-		const metrics = this.utilService.spawnPython<Metrics>(file);
-		this.utilService.deleteFile(file);
+		const file = this.util.writeFile(text);
+		const metrics = this.util.spawnPython<Metrics>(file);
+		this.util.deleteFile(file);
 		return metrics;
 	}
 

@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prismaScaleFindManyInput } from '..';
 
 export * from './analysis.response';
+export * from './get-analysis.dto';
 export * from './post-analysis.dto';
 
 export const prismaAlgorithmFindManySelect =

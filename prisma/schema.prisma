@@ -29,9 +29,10 @@ model AnalysisResult {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  scores Score[]
-  userId String
-  user   User    @relation(references: [id], fields: [userId])
+  description String
+  scores      Score[]
+  userId      String
+  user        User    @relation(references: [id], fields: [userId])
 }
 
 model Algorithm {

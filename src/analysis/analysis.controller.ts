@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	FileTypeValidator,
+	Get,
 	ParseFilePipe,
 	Post,
 	UploadedFile,
@@ -26,7 +27,16 @@ const mimeTypeRegexp =
 export class AnalysisControler {
 	constructor(private analysisService: AnalysisService) {}
 
+	// get routes
+
 	@UseGuards(JwtGuard)
+	@Get('')
+	getAnalysis() {
+		return [];
+	}
+
+	// post routes
+
 	@Post('')
 	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
 		return this.analysisService.postAnalysis({
@@ -63,4 +73,8 @@ export class AnalysisControler {
 			numOfSamples: dto.numOfSamples || 5,
 		});
 	}
+
+	// put/patch routes
+
+	// delete routes
 }
