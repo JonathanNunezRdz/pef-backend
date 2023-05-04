@@ -37,17 +37,17 @@ export class AnalysisService {
 		if (!this.utilService.validateUrl(dto.url))
 			throw new BadRequestException('URL no válido');
 
-		// extract content from url
-		console.log(dto.url);
-
 		const res = await fetch(dto.url, {
 			method: 'GET',
 		});
 		const page = await res.text();
 		const parsedText = convert(page, {
-			selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+			selectors: [
+				{ selector: 'a', options: { ignoreHref: true } },
+				{ selector: 'img', format: 'skip' },
+			],
 		});
-		console.log(parsedText);
+
 		return this.postAnalysis({
 			text: parsedText,
 			numOfSamples: dto.numOfSamples || 5,
@@ -57,17 +57,18 @@ export class AnalysisService {
 	async postAnalysisWithFile(dto: PostAnalysisWithFileService) {
 		const { document, numOfSamples } = dto;
 		let text: string;
+
+		// if format is .pdf
 		if (document.mimetype === 'application/pdf') {
 			const result = await pdf(document.buffer);
 			text = result.text;
-		} else if (document.mimetype === 'text/plain') {
+		}
+		// if format is .txt
+		else if (document.mimetype === 'text/plain') {
 			text = document.buffer.toString();
-		} else if (
-			/(application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/.test(
-				document.mimetype
-			)
-		) {
-			// extract contents from doc with node-extractor
+		}
+		// if format is .doc/.docx
+		else if (this.utilService.validateDOCX(document.mimetype)) {
 			const extractor = new WordExtractor();
 			const parsedDocument = await extractor.extract(document.buffer);
 			text = parsedDocument.getBody();
@@ -83,8 +84,7 @@ export class AnalysisService {
 	async postAnalysis(
 		dto: PostAnalysisService
 	): Promise<PostAnalysisResponse> {
-		// if (franc.franc(dto.text) !== 'spa')
-		// 	throw new BadRequestException('este lenguage no es espanol');
+		// future feature -> detect is text is in spanish
 
 		const metrics = this.metricsService.getMetrics(dto);
 

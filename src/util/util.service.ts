@@ -12,6 +12,16 @@ import { v4 } from 'uuid';
 export class UtilService {
 	constructor(private configService: ConfigService) {}
 
+	validateDOCX(mimetype: string) {
+		if (
+			/(application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/.test(
+				mimetype
+			)
+		)
+			return true;
+		return false;
+	}
+
 	validateUrl(url: string) {
 		try {
 			new URL(url);

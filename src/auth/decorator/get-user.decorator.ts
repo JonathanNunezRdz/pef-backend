@@ -10,7 +10,7 @@ export const GetUser = createParamDecorator(
 	(data: keyof User, ctx: ExecutionContext) => {
 		const request: Request = ctx.switchToHttp().getRequest();
 		if (!request.user)
-			throw new ForbiddenException('usuario no autenticado');
+			throw new ForbiddenException('Usuario no autenticado');
 		if (data) return (request.user as User)[data];
 		return request.user as User;
 	}
