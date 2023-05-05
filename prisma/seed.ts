@@ -14,6 +14,7 @@ async function main() {
 		},
 	});
 
+	//  agregar nombre legible para las variables
 	await prisma.variable.createMany({
 		data: [
 			{

@@ -171,6 +171,11 @@ export class MetricsService {
 	getWords(text: string): string[] {
 		const words = text.match(/\p{L}+/gu);
 		if (!words) throw new Error('no matches for words');
+		// const allWords: Record<string, number> = {};
+		// words.forEach((word) => {
+		// 	if (allWords[word]) allWords[word]++;
+		// 	else allWords[word] = 1;
+		// })
 		return words;
 	}
 

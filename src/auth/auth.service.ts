@@ -35,7 +35,7 @@ export class AuthService {
 		} catch (error) {
 			if (error instanceof PrismaClientKnownRequestError) {
 				if (error.code === 'P2002')
-					throw new ConflictException('credenciales ya en uso');
+					throw new ConflictException('Credenciales ya en uso');
 			}
 			throw error;
 		}
@@ -49,10 +49,10 @@ export class AuthService {
 			},
 		});
 
-		if (!rawUser) throw new ForbiddenException('credenciales incorrectas');
+		if (!rawUser) throw new ForbiddenException('Credenciales incorrectas');
 
 		const valid = await verify(rawUser.hash, password);
-		if (!valid) throw new ForbiddenException('credenciales incorrectas');
+		if (!valid) throw new ForbiddenException('Credenciales incorrectas');
 
 		return this.signToken(rawUser.id, rawUser.email);
 	}
