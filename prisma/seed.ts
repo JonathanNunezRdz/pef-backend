@@ -19,36 +19,49 @@ async function main() {
 		data: [
 			{
 				name: 'numOfLetters',
+				readableName: 'Número de letras',
 			},
 			{
 				name: 'numOfSyllables',
+				readableName: 'Número de sílabas',
 			},
 			{
 				name: 'numOfWords',
+				readableName: 'Número de palabras',
 			},
 			{
 				name: 'numOfSentences',
+				readableName: 'Número de enunciados',
 			},
+
 			{
 				name: 'avgLettersPerWord',
+				readableName: 'Promedio de letras por palabra',
 			},
 			{
 				name: 'avgSyllablePerWord',
+				readableName: 'Promedio de sílabas por palabra',
 			},
 			{
 				name: 'avgWordsPerSentence',
+				readableName: 'Promedio de palabras por enunciado',
 			},
 			{
 				name: 'avgSentencesPerHundredWords',
+				readableName: 'Promedio de enunciados por cada 100 palabras',
 			},
 			{
 				name: 'avgSyllablesPerHundredWords',
+				readableName: 'Promedio de sílabas por cada 100 palabras',
 			},
 			{
 				name: 'varLettersPerWord',
+				readableName: 'Varianza de letras por palabra',
 			},
 			{
 				name: 'numOfSamples',
+				readableName:
+					'Número de muestras a usar al aplicar el algoritmo de Fernández Huerta',
 			},
 		],
 	});
@@ -67,7 +80,7 @@ async function main() {
 	await prisma.$transaction([
 		prisma.algorithm.create({
 			data: {
-				name: 'Fernandez Huerta',
+				name: 'Fernández Huerta',
 				max: 100,
 				min: 0,
 				unit: 'puntos de lecturabilidad',
@@ -97,17 +110,17 @@ async function main() {
 						data: [
 							{
 								upperLimit: 30,
-								level: 'Muy dificil',
+								level: 'Muy difícil',
 								extra: {
 									schoolGrade: {
 										label: 'Grado educativo',
-										value: 'Universitario (especcialización',
+										value: 'Universitario (especcialización)',
 									},
 								},
 							},
 							{
 								upperLimit: 50,
-								level: 'Dificil',
+								level: 'Difícil',
 								extra: {
 									schoolGrade: {
 										label: 'Grado educativo',
@@ -117,7 +130,7 @@ async function main() {
 							},
 							{
 								upperLimit: 60,
-								level: 'Moderadamente dificil',
+								level: 'Moderadamente difícil',
 								extra: {
 									schoolGrade: {
 										label: 'Grado educativo',
@@ -198,11 +211,11 @@ async function main() {
 						data: [
 							{
 								upperLimit: 20,
-								level: 'Muy dificil',
+								level: 'Muy difícil',
 							},
 							{
 								upperLimit: 40,
-								level: 'Dificil',
+								level: 'Difícil',
 							},
 							{
 								upperLimit: 60,
@@ -249,7 +262,7 @@ async function main() {
 						data: [
 							{
 								upperLimit: 16,
-								level: 'Muy dificil',
+								level: 'Muy difícil',
 								extra: {
 									type: {
 										label: 'Tipo de texto',
@@ -277,7 +290,7 @@ async function main() {
 							},
 							{
 								upperLimit: 50,
-								level: 'Bastante dificil',
+								level: 'Bastante difícil',
 								extra: {
 									type: {
 										label: 'Tipo de texto',
@@ -295,7 +308,7 @@ async function main() {
 								extra: {
 									type: {
 										label: 'Tipo de texto',
-										value: 'Los media',
+										value: 'Los medios',
 									},
 									schoolGrade: {
 										label: 'Grado educativo',
@@ -378,11 +391,11 @@ async function main() {
 						data: [
 							{
 								upperLimit: 41,
-								level: 'Muy dificil',
+								level: 'Muy difícil',
 							},
 							{
 								upperLimit: 55,
-								level: 'Algo dificil',
+								level: 'Algo difícil',
 							},
 							{
 								upperLimit: 65,
@@ -431,15 +444,15 @@ async function main() {
 						data: [
 							{
 								upperLimit: 30,
-								level: 'Muy dificil',
+								level: 'Muy difícil',
 							},
 							{
 								upperLimit: 50,
-								level: 'Dificil',
+								level: 'Difícil',
 							},
 							{
 								upperLimit: 60,
-								level: 'Un poco dificil',
+								level: 'Un poco difícil',
 							},
 							{
 								upperLimit: 70,

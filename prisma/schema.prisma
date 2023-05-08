@@ -30,9 +30,10 @@ model AnalysisResult {
   updatedAt DateTime @updatedAt
 
   description String
-  scores      Score[]
-  userId      String
-  user        User    @relation(references: [id], fields: [userId])
+
+  scores Score[]
+  userId String
+  user   User    @relation(references: [id], fields: [userId])
 }
 
 model Algorithm {

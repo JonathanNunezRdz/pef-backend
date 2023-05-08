@@ -10,7 +10,9 @@ import { Silabizer, numToWord } from './helpers';
 
 @Injectable()
 export class MetricsService {
-	getMetrics({ text, numOfSamples }: GetMetricsService): Metrics {
+	getMetrics(dto: GetMetricsService): Metrics {
+		let { text } = dto;
+		const { numOfSamples } = dto;
 		debugger;
 
 		text = sanitizeText(text);
