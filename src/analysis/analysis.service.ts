@@ -56,6 +56,7 @@ export class AnalysisService {
 			select: {
 				id: true,
 				createdAt: true,
+				description: true,
 				scores: {
 					select: {
 						id: true,
@@ -177,6 +178,30 @@ export class AnalysisService {
 				throw error;
 			}
 		});
+
+		if ('userId' in dto) {
+			// const prismaScores: Prisma.Score = [];
+			await this.prisma.analysisResult.create({
+				data: {
+					description: dto.description,
+					scores: {
+						create: {
+							value: scores[0].score.value,
+							algorithm: {
+								connect: {
+									id: scores[0].id,
+								},
+							},
+						},
+					},
+					user: {
+						connect: {
+							id: dto.userId,
+						},
+					},
+				},
+			});
+		}
 
 		return {
 			id: v4(),

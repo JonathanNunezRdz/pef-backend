@@ -5,11 +5,14 @@ import {
 	Get,
 	ParseFilePipe,
 	Post,
+	Query,
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
 } from '@nestjs/common';
 import {
+	GetAnalysisDto,
+	GetAnalysisResponse,
 	PostAnalysisDto,
 	PostAnalysisResponse,
 	PostAnalysisWithFileDto,
@@ -17,6 +20,8 @@ import {
 } from '@src/types';
 
 import { FileInterceptor } from '@nestjs/platform-express';
+import { User } from '@prisma/client';
+import { GetUser } from '@src/auth/decorator';
 import { JwtGuard } from '@src/auth/guard';
 import { AnalysisService } from './analysis.service';
 
@@ -31,8 +36,11 @@ export class AnalysisControler {
 
 	@UseGuards(JwtGuard)
 	@Get('')
-	getAnalysis() {
-		return [];
+	getAnalysis(
+		@Query() dto: GetAnalysisDto,
+		@GetUser('id') userId: User['id']
+	): Promise<GetAnalysisResponse> {
+		return this.analysisService.getAnalysis({ id: userId, ...dto });
 	}
 
 	// post routes

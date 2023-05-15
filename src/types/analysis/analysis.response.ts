@@ -18,6 +18,8 @@ export type GetAnalysisResponse = {
 		id: string;
 		createdAt: Date;
 
+		description: string;
+
 		scores: {
 			id: string;
 			value: number;
