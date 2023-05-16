@@ -10,6 +10,7 @@ import pdf from 'pdf-parse';
 import { v4 } from 'uuid';
 import WordExtractor from 'word-extractor';
 
+import { Prisma } from '@prisma/client';
 import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
@@ -22,6 +23,8 @@ import {
 	PostAnalysisWithFileService,
 	PostAnalysisWithUrlDto,
 	PrismaScale,
+	SaveAnalysisResponse,
+	SaveAnalysisService,
 	ScoreExtra,
 	prismaAlgorithmFindManySelect,
 } from '@src/types';
@@ -135,6 +138,48 @@ export class AnalysisService {
 
 	// post services
 
+	async saveAnalysis(
+		dto: SaveAnalysisService
+	): Promise<SaveAnalysisResponse> {
+		const { userId, postDto } = dto;
+		let { description } = dto;
+		if (!description) description = postDto.text.slice(0, 20);
+
+		const analysis = await this.postAnalysis(postDto);
+
+		const prismaScores: Prisma.ScoreCreateManyAnalysisResultInput[] =
+			analysis.scores.map<Prisma.ScoreCreateManyAnalysisResultInput>(
+				(score) => {
+					return {
+						value: score.score.value,
+						dificulty: score.score.level,
+						algorithmId: score.id,
+					};
+				}
+			);
+
+		const savedAnalysis = await this.prisma.analysisResult.create({
+			data: {
+				description,
+				scores: {
+					createMany: {
+						data: prismaScores,
+					},
+				},
+				user: {
+					connect: {
+						id: userId,
+					},
+				},
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		return { ...analysis, id: savedAnalysis.id, description };
+	}
+
 	async postAnalysis(
 		dto: PostAnalysisService
 	): Promise<PostAnalysisResponse> {
@@ -178,30 +223,6 @@ export class AnalysisService {
 				throw error;
 			}
 		});
-
-		if ('userId' in dto) {
-			// const prismaScores: Prisma.Score = [];
-			await this.prisma.analysisResult.create({
-				data: {
-					description: dto.description,
-					scores: {
-						create: {
-							value: scores[0].score.value,
-							algorithm: {
-								connect: {
-									id: scores[0].id,
-								},
-							},
-						},
-					},
-					user: {
-						connect: {
-							id: dto.userId,
-						},
-					},
-				},
-			});
-		}
 
 		return {
 			id: v4(),

@@ -17,6 +17,8 @@ import {
 	PostAnalysisResponse,
 	PostAnalysisWithFileDto,
 	PostAnalysisWithUrlDto,
+	SaveAnalysisDto,
+	SaveAnalysisResponse,
 } from '@src/types';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -44,6 +46,22 @@ export class AnalysisControler {
 	}
 
 	// post routes
+
+	@UseGuards(JwtGuard)
+	@Post('save')
+	saveAnalysis(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: SaveAnalysisDto
+	): Promise<SaveAnalysisResponse> {
+		return this.analysisService.saveAnalysis({
+			userId,
+			description: dto.description,
+			postDto: {
+				numOfSamples: dto.numOfSamples || 5,
+				text: dto.text,
+			},
+		});
+	}
 
 	@Post('')
 	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {

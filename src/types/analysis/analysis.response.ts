@@ -1,5 +1,3 @@
-// TODO: type out the response that the frontend is going to receive
-
 import { BaseAlgorithmScore, Metrics } from '..';
 
 export type AnalysisResponse = {
@@ -8,7 +6,11 @@ export type AnalysisResponse = {
 	updatedAt: Date;
 
 	scores: BaseAlgorithmScore[];
-	metrics: Metrics;
+	metrics: Record<keyof Metrics, { readableName: string; value: number }>;
+};
+
+export type SaveAnalysisResponse = AnalysisResponse & {
+	description: string;
 };
 
 export type PostAnalysisResponse = AnalysisResponse;

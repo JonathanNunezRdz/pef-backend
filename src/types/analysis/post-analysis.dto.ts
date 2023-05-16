@@ -12,6 +12,12 @@ export class PostAnalysisDto {
 	numOfSamples?: number;
 }
 
+export class SaveAnalysisDto extends PostAnalysisDto {
+	@IsString()
+	@IsOptional()
+	description?: string;
+}
+
 export class PostAnalysisWithFileDto {
 	@IsInt()
 	@Type(() => Number)
@@ -42,18 +48,13 @@ export interface PostAnalysisWithFileService {
 	userId?: User['id'];
 }
 
-export type PostAnalysisService =
-	| PostAnalysisWithUser
-	| PostAnalysisWithoutUser;
-
-export interface PostAnalysisWithUser {
+export interface PostAnalysisService {
 	text: string;
 	numOfSamples: number;
-	userId: User['id'];
-	description: string;
 }
 
-export interface PostAnalysisWithoutUser {
-	text: string;
-	numOfSamples: number;
+export interface SaveAnalysisService {
+	userId: User['id'];
+	postDto: PostAnalysisService;
+	description?: string;
 }
