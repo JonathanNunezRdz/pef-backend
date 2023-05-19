@@ -38,6 +38,7 @@ export class UserController {
 	}
 
 	// delete routes
+	@UseGuards(JwtGuard)
 	@HttpCode(HttpStatus.OK)
 	@Delete()
 	deleteUser(@GetUser('id') userId: User['id']) {

@@ -19,3 +19,9 @@ export const prismaAlgorithmVariableFindManyInput =
 	Prisma.validator<Prisma.AlgorithmVariableFindManyArgs>()({
 		select: prismaAlgorithmVariableSelect.select,
 	});
+
+export type ResponseVariable = {
+	name: string;
+	readableName: string;
+	value: number;
+};

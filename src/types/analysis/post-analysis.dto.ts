@@ -12,9 +12,17 @@ export class PostAnalysisDto {
 	numOfSamples?: number;
 }
 
+export type PostAnalysisService = Required<PostAnalysisDto>;
+
 export class SaveAnalysisDto extends PostAnalysisDto {
 	@IsString()
 	@IsOptional()
+	description?: string;
+}
+
+export interface SaveAnalysisService {
+	userId: User['id'];
+	postDto: PostAnalysisService;
 	description?: string;
 }
 
@@ -24,6 +32,23 @@ export class PostAnalysisWithFileDto {
 	@Min(1)
 	@IsOptional()
 	numOfSamples?: number;
+}
+
+export interface PostAnalysisWithFileService {
+	numOfSamples: number;
+	document: Express.Multer.File;
+}
+
+export class SaveAnalysisWithFileDto extends PostAnalysisWithFileDto {
+	@IsString()
+	@IsOptional()
+	description?: string;
+}
+
+export interface SaveAnalysisWithFileService {
+	userId: User['id'];
+	postDto: PostAnalysisWithFileService;
+	description?: string;
 }
 
 export class PostAnalysisWithUrlDto {
@@ -39,22 +64,16 @@ export class PostAnalysisWithUrlDto {
 export interface PostAnalysisWithUrlService {
 	url: string;
 	numOfSamples: number;
-	userId?: User['id'];
 }
 
-export interface PostAnalysisWithFileService {
-	numOfSamples: number;
-	document: Express.Multer.File;
-	userId?: User['id'];
+export class SaveAnalysisWithUrlDto extends PostAnalysisWithUrlDto {
+	@IsString()
+	@IsOptional()
+	description?: string;
 }
 
-export interface PostAnalysisService {
-	text: string;
-	numOfSamples: number;
-}
-
-export interface SaveAnalysisService {
+export interface SaveAnalysisWithUrlService {
 	userId: User['id'];
-	postDto: PostAnalysisService;
+	postDto: PostAnalysisWithUrlService;
 	description?: string;
 }

@@ -1,4 +1,4 @@
-import { BaseAlgorithmScore, Metrics } from '..';
+import { BaseAlgorithmScore, ResponseVariable } from '..';
 
 export type AnalysisResponse = {
 	id: string;
@@ -6,7 +6,8 @@ export type AnalysisResponse = {
 	updatedAt: Date;
 
 	scores: BaseAlgorithmScore[];
-	metrics: Record<keyof Metrics, { readableName: string; value: number }>;
+	metrics: ResponseVariable[];
+	originalText?: string;
 };
 
 export type SaveAnalysisResponse = AnalysisResponse & {

@@ -4,9 +4,10 @@ export type BaseScore = {
 	extra?: ScoreExtra;
 };
 
-export type ScoreExtra = {
-	[k: string]: {
+export type ScoreExtra = Record<
+	string,
+	{
 		label: string;
 		value: string;
-	};
-};
+	}
+>;

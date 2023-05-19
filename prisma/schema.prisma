@@ -63,7 +63,7 @@ model Score {
   algorithmId      String
   algorithm        Algorithm      @relation(references: [id], fields: [algorithmId])
   analysisResultId String
-  analysisResult   AnalysisResult @relation(references: [id], fields: [analysisResultId])
+  analysisResult   AnalysisResult @relation(references: [id], fields: [analysisResultId], onDelete: Cascade)
 }
 
 model AlgorithmScale {

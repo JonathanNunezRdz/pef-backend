@@ -1,28 +1,74 @@
-import { Injectable } from '@nestjs/common';
-import { CreateResultDto } from './dto/create-result.dto';
-import { UpdateResultDto } from './dto/update-result.dto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { PrismaService } from '@src/prisma/prisma.service';
+import {
+	DeleteResultService,
+	PatchResultResponse,
+	PatchResultService,
+} from '@src/types';
 
 @Injectable()
 export class ResultService {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	create(createResultDto: CreateResultDto) {
-		return 'This action adds a new result';
+	constructor(private prisma: PrismaService) {}
+
+	// get services
+
+	// post services
+
+	// patch services
+
+	async editResult(dto: PatchResultService): Promise<PatchResultResponse> {
+		const { description, userId, resultId } = dto;
+
+		const rawResult = await this.prisma.analysisResult.findUnique({
+			where: {
+				id: resultId,
+			},
+			select: {
+				id: true,
+				userId: true,
+			},
+		});
+
+		if (!rawResult || rawResult.userId !== userId)
+			throw new ForbiddenException('No esta permitido esta acción');
+
+		await this.prisma.analysisResult.update({
+			where: {
+				id: resultId,
+			},
+			data: {
+				description,
+			},
+		});
+
+		return {
+			id: resultId,
+			description,
+		};
 	}
 
-	findAll() {
-		return `This action returns all result`;
-	}
+	// delete services
 
-	findOne(id: number) {
-		return `This action returns a #${id} result`;
-	}
+	async deleteResult(dto: DeleteResultService) {
+		const { resultId, userId } = dto;
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	update(id: number, updateResultDto: UpdateResultDto) {
-		return `This action updates a #${id} result`;
-	}
+		const deleteResult = await this.prisma.analysisResult.findUnique({
+			where: {
+				id: resultId,
+			},
+			select: {
+				id: true,
+				userId: true,
+			},
+		});
 
-	remove(id: number) {
-		return `This action removes a #${id} result`;
+		if (!deleteResult || deleteResult.userId !== userId)
+			throw new ForbiddenException('No esta permitido esta acción');
+
+		await this.prisma.analysisResult.delete({
+			where: {
+				id: resultId,
+			},
+		});
 	}
 }

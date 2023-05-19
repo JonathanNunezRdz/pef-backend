@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AnalysisModule } from './analysis/analysis.module';
 
+import { AlgorithmModule } from './algorithm/algorithm.module';
 import { AuthModule } from './auth/auth.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { AppLoggerMiddleware } from './middleware';
@@ -21,6 +22,7 @@ import { UtilModule } from './util/util.module';
 		AnalysisModule,
 		MetricsModule,
 		AuthModule,
+		AlgorithmModule,
 	],
 	controllers: [],
 	providers: [],

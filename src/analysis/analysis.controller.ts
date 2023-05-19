@@ -19,6 +19,8 @@ import {
 	PostAnalysisWithUrlDto,
 	SaveAnalysisDto,
 	SaveAnalysisResponse,
+	SaveAnalysisWithFileDto,
+	SaveAnalysisWithUrlDto,
 } from '@src/types';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -47,27 +49,29 @@ export class AnalysisControler {
 
 	// post routes
 
-	@UseGuards(JwtGuard)
-	@Post('save')
-	saveAnalysis(
-		@GetUser('id') userId: User['id'],
-		@Body() dto: SaveAnalysisDto
-	): Promise<SaveAnalysisResponse> {
-		return this.analysisService.saveAnalysis({
-			userId,
-			description: dto.description,
-			postDto: {
-				numOfSamples: dto.numOfSamples || 5,
-				text: dto.text,
-			},
+	@Post('url')
+	postAnalysisWithUrl(
+		@Body() dto: PostAnalysisWithUrlDto
+	): Promise<PostAnalysisResponse> {
+		return this.analysisService.postAnalysisWithUrl({
+			url: dto.url,
+			numOfSamples: dto.numOfSamples || 5,
 		});
 	}
 
-	@Post('')
-	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
-		return this.analysisService.postAnalysis({
-			text: dto.text,
-			numOfSamples: dto.numOfSamples || 5,
+	@UseGuards(JwtGuard)
+	@Post('save/url')
+	saveAnalysisWithUrl(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: SaveAnalysisWithUrlDto
+	): Promise<SaveAnalysisResponse> {
+		return this.analysisService.saveAnalysisWithUrl({
+			userId,
+			description: dto.description,
+			postDto: {
+				url: dto.url,
+				numOfSamples: dto.numOfSamples || 5,
+			},
 		});
 	}
 
@@ -92,11 +96,54 @@ export class AnalysisControler {
 		});
 	}
 
-	@Post('url')
-	postAnalysisWithUrl(@Body() dto: PostAnalysisWithUrlDto): Promise<any> {
-		return this.analysisService.postAnalysisWithUrl({
-			url: dto.url,
+	@UseGuards(JwtGuard)
+	@Post('save/file')
+	@UseInterceptors(FileInterceptor('document'))
+	saveAnalysisWithFile(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: SaveAnalysisWithFileDto,
+		@UploadedFile(
+			new ParseFilePipe({
+				validators: [
+					new FileTypeValidator({
+						fileType: mimeTypeRegexp,
+					}),
+				],
+			})
+		)
+		document: Express.Multer.File
+	): Promise<SaveAnalysisResponse> {
+		return this.analysisService.saveAnalysisWithFile({
+			userId,
+			description: dto.description,
+			postDto: {
+				document,
+				numOfSamples: dto.numOfSamples || 5,
+			},
+		});
+	}
+
+	@Post('')
+	postAnalysis(@Body() dto: PostAnalysisDto): Promise<PostAnalysisResponse> {
+		return this.analysisService.postAnalysis({
+			text: dto.text,
 			numOfSamples: dto.numOfSamples || 5,
+		});
+	}
+
+	@UseGuards(JwtGuard)
+	@Post('save')
+	saveAnalysis(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: SaveAnalysisDto
+	): Promise<SaveAnalysisResponse> {
+		return this.analysisService.saveAnalysis({
+			userId,
+			description: dto.description,
+			postDto: {
+				numOfSamples: dto.numOfSamples || 5,
+				text: dto.text,
+			},
 		});
 	}
 

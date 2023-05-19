@@ -114,7 +114,7 @@ async function main() {
 								extra: {
 									schoolGrade: {
 										label: 'Grado educativo',
-										value: 'Universitario (especcialización)',
+										value: 'Universitario (especialización)',
 									},
 								},
 							},
@@ -495,6 +495,41 @@ async function main() {
 								variableId: extractVariableId(
 									'avgSyllablesPerHundredWords'
 								),
+							},
+						],
+					},
+				},
+			},
+		}),
+		prisma.algorithm.create({
+			data: {
+				name: 'Algoritmo UDEM',
+				max: 100,
+				min: 0,
+				unit: 'puntos de legibilidad',
+				formula: '',
+				scales: {
+					createMany: {
+						data: [
+							{
+								upperLimit: 44,
+								level: 'Muy difícil',
+							},
+							{
+								upperLimit: 59,
+								level: 'Difícil',
+							},
+							{
+								upperLimit: 69,
+								level: 'Normal',
+							},
+							{
+								upperLimit: 79,
+								level: 'Fácil',
+							},
+							{
+								upperLimit: 100,
+								level: 'Muy fácil',
 							},
 						],
 					},

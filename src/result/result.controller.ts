@@ -2,41 +2,50 @@ import {
 	Body,
 	Controller,
 	Delete,
-	Get,
+	HttpCode,
+	HttpStatus,
 	Param,
 	Patch,
-	Post,
+	UseGuards,
 } from '@nestjs/common';
-import { CreateResultDto } from './dto/create-result.dto';
-import { UpdateResultDto } from './dto/update-result.dto';
+import { AnalysisResult, User } from '@prisma/client';
+import { GetUser } from '@src/auth/decorator';
+import { JwtGuard } from '@src/auth/guard';
+import { PatchResultDto, PatchResultResponse } from '@src/types';
 import { ResultService } from './result.service';
 
+@UseGuards(JwtGuard)
 @Controller('result')
 export class ResultController {
 	constructor(private readonly resultService: ResultService) {}
 
-	@Post()
-	create(@Body() createResultDto: CreateResultDto) {
-		return this.resultService.create(createResultDto);
-	}
+	// get routes
 
-	@Get()
-	findAll() {
-		return this.resultService.findAll();
-	}
+	// post routes
 
-	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.resultService.findOne(+id);
-	}
+	// patch/put routes
 
 	@Patch(':id')
-	update(@Param('id') id: string, @Body() updateResultDto: UpdateResultDto) {
-		return this.resultService.update(+id, updateResultDto);
+	editResult(
+		@GetUser('id') userId: User['id'],
+		@Param('id') id: AnalysisResult['id'],
+		@Body() dto: PatchResultDto
+	): Promise<PatchResultResponse> {
+		return this.resultService.editResult({
+			userId,
+			resultId: id,
+			description: dto.description,
+		});
 	}
 
+	// delete routes
+
+	@HttpCode(HttpStatus.OK)
 	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.resultService.remove(+id);
+	deleteResult(
+		@GetUser('id') userId: User['id'],
+		@Param('id') resultId: AnalysisResult['id']
+	) {
+		return this.resultService.deleteResult({ userId, resultId });
 	}
 }

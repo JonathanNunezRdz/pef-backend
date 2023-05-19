@@ -1,14 +1,6 @@
-import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException,
-	NotAcceptableException,
-} from '@nestjs/common';
-import { convert } from 'html-to-text';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { evaluate } from 'mathjs';
-import pdf from 'pdf-parse';
 import { v4 } from 'uuid';
-import WordExtractor from 'word-extractor';
 
 import { Prisma } from '@prisma/client';
 import { MetricsService } from '@src/metrics/metrics.service';
@@ -17,18 +9,64 @@ import {
 	BaseAlgorithmScore,
 	GetAnalysisResponse,
 	GetAnalysisService,
-	Metrics,
 	PostAnalysisResponse,
 	PostAnalysisService,
 	PostAnalysisWithFileService,
-	PostAnalysisWithUrlDto,
+	PostAnalysisWithUrlService,
 	PrismaScale,
+	ResponseVariable,
 	SaveAnalysisResponse,
 	SaveAnalysisService,
+	SaveAnalysisWithFileService,
+	SaveAnalysisWithUrlService,
 	ScoreExtra,
 	prismaAlgorithmFindManySelect,
+	prismaScaleSelect,
 } from '@src/types';
 import { UtilService } from '../util/util.service';
+
+const pointsPerDificulty: Record<string, number> = {
+	'Muy fácil': 10,
+	Fácil: 9,
+	'Bastante fácil': 8,
+	'Un poco fácil': 7,
+	'Moderadamente fácil': 7,
+	Normal: 6,
+	Adecuado: 6,
+	'Un poco difícil': 5,
+	'Algo difícil': 4,
+	'Moderadamente difícil': 4,
+	Árido: 3,
+	'Bastante difícil': 3,
+	Difícil: 2,
+	'Muy difícil': 1,
+};
+
+const algorithmWeights: Record<
+	string,
+	{ lessThanHundredWords: number; moreThanHundredWords: number }
+> = {
+	'Fernández Huerta': {
+		lessThanHundredWords: 2,
+		moreThanHundredWords: 3.5,
+	},
+	'Gutiérrez de Polini': {
+		lessThanHundredWords: 1,
+		moreThanHundredWords: 1,
+	},
+	'Szigriszt-Pazos': {
+		lessThanHundredWords: 2.5,
+		moreThanHundredWords: 2,
+	},
+	Inflesz: {
+		lessThanHundredWords: 3,
+		moreThanHundredWords: 2.5,
+	},
+	'Legibilidad μ': {
+		lessThanHundredWords: 2,
+		moreThanHundredWords: 1,
+	},
+};
 
 @Injectable()
 export class AnalysisService {
@@ -78,7 +116,7 @@ export class AnalysisService {
 			take: limit,
 			skip: (page - 1) * limit,
 			orderBy: {
-				createdAt: 'asc',
+				createdAt: 'desc',
 			},
 		});
 
@@ -90,62 +128,85 @@ export class AnalysisService {
 
 	// post services
 
-	async postAnalysisWithUrl(dto: PostAnalysisWithUrlDto) {
-		if (!this.util.validateUrl(dto.url))
-			throw new BadRequestException('URL no válido');
-
-		const res = await fetch(dto.url, {
-			method: 'GET',
-		});
-		const page = await res.text();
-		const parsedText = convert(page, {
-			selectors: [
-				{ selector: 'a', options: { ignoreHref: true } },
-				{ selector: 'img', format: 'skip' },
-			],
-		});
-
+	async postAnalysisWithUrl(
+		dto: PostAnalysisWithUrlService
+	): Promise<PostAnalysisResponse> {
+		const { url, numOfSamples } = dto;
+		const text = await this.util.extractTextFromUrl(url);
 		return this.postAnalysis({
-			text: parsedText,
-			numOfSamples: dto.numOfSamples || 5,
+			text,
+			numOfSamples,
 		});
+	}
+
+	async saveAnalysisWithUrl(
+		dto: SaveAnalysisWithUrlService
+	): Promise<SaveAnalysisResponse> {
+		const { userId, postDto } = dto;
+		let { description } = dto;
+
+		const text = await this.util.extractTextFromUrl(postDto.url);
+
+		if (!description) description = `${text.slice(0, 20)}...`;
+
+		const analysis = await this.postAnalysis({
+			numOfSamples: postDto.numOfSamples,
+			text,
+		});
+
+		const prismaScores: Prisma.ScoreCreateManyAnalysisResultInput[] =
+			analysis.scores.map<Prisma.ScoreCreateManyAnalysisResultInput>(
+				(score) => {
+					return {
+						value: score.score.value,
+						dificulty: score.score.level,
+						algorithmId: score.id,
+					};
+				}
+			);
+
+		const savedAnalysis = await this.prisma.analysisResult.create({
+			data: {
+				description,
+				scores: {
+					createMany: {
+						data: prismaScores,
+					},
+				},
+				user: {
+					connect: {
+						id: userId,
+					},
+				},
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		return { ...analysis, id: savedAnalysis.id, description };
 	}
 
 	async postAnalysisWithFile(dto: PostAnalysisWithFileService) {
 		const { document, numOfSamples } = dto;
-		let text: string;
-
-		// if format is .pdf
-		if (document.mimetype === 'application/pdf') {
-			const result = await pdf(document.buffer);
-			text = result.text;
-		}
-		// if format is .txt
-		else if (document.mimetype === 'text/plain') {
-			text = document.buffer.toString();
-		}
-		// if format is .doc/.docx
-		else if (this.util.validateDOCX(document.mimetype)) {
-			const extractor = new WordExtractor();
-			const parsedDocument = await extractor.extract(document.buffer);
-			text = parsedDocument.getBody();
-		} else {
-			throw new NotAcceptableException('file format not supported');
-		}
-
+		const text = await this.util.extractTextFromFile(document);
 		return this.postAnalysis({ text, numOfSamples });
 	}
 
-	// post services
-
-	async saveAnalysis(
-		dto: SaveAnalysisService
+	async saveAnalysisWithFile(
+		dto: SaveAnalysisWithFileService
 	): Promise<SaveAnalysisResponse> {
 		const { userId, postDto } = dto;
 		let { description } = dto;
-		if (!description) description = postDto.text.slice(0, 20);
 
-		const analysis = await this.postAnalysis(postDto);
+		const text = await this.util.extractTextFromFile(postDto.document);
+
+		if (!description) description = `${text.slice(0, 20)}...`;
+
+		const analysis = await this.postAnalysis({
+			numOfSamples: postDto.numOfSamples,
+			text,
+		});
 
 		const prismaScores: Prisma.ScoreCreateManyAnalysisResultInput[] =
 			analysis.scores.map<Prisma.ScoreCreateManyAnalysisResultInput>(
@@ -186,8 +247,13 @@ export class AnalysisService {
 		// future feature -> detect is text is in spanish
 
 		const metrics = this.metrics.getMetrics(dto);
-
+		const metricNames = await this.prisma.variable.findMany();
 		const algorithms = await this.prisma.algorithm.findMany({
+			where: {
+				name: {
+					not: 'Algoritmo UDEM',
+				},
+			},
 			select: prismaAlgorithmFindManySelect.select,
 		});
 
@@ -224,23 +290,127 @@ export class AnalysisService {
 			}
 		});
 
+		// aplicar algoritmo desarrollado aqui
+		const newScores = scores
+			.filter((score) => typeof score.score.level !== 'undefined')
+			.reduce<{ [k: string]: number }>((prev, score) => {
+				if (typeof score.score.level === 'undefined')
+					throw new InternalServerErrorException(
+						'Filtrado de puntajes fallido'
+					);
+				const newPoints = pointsPerDificulty[score.score.level];
+				return {
+					...prev,
+					[score.name]: newPoints,
+				};
+			}, {});
+
+		const applyAlgorithmUdem = () => {
+			const key =
+				metrics.numOfLetters >= 100
+					? 'moreThanHundredWords'
+					: 'lessThanHundredWords';
+			let acc = 0;
+			Object.entries(newScores).forEach(([algorithm, points]) => {
+				acc += points * algorithmWeights[algorithm][key];
+			});
+			return acc;
+		};
+
+		const algorithmUdemData = await this.prisma.algorithm.findFirst({
+			where: {
+				name: 'Algoritmo UDEM',
+			},
+			select: {
+				id: true,
+				name: true,
+				max: true,
+				min: true,
+				unit: true,
+				scales: prismaScaleSelect,
+			},
+		});
+
+		if (!algorithmUdemData)
+			throw new InternalServerErrorException(
+				'Algoritmo UDEM no encontrado'
+			);
+
+		const { scales, ...rest } = algorithmUdemData;
+		const algorithmUdem: BaseAlgorithmScore = {
+			...rest,
+			score: this.getAlgorithmScore(scales, applyAlgorithmUdem()),
+		};
+
+		const newMetrics = Object.entries(metrics).map<ResponseVariable>(
+			(pair) => {
+				const readableName = metricNames.find(
+					(metric) => metric.name === pair[0]
+				);
+				if (typeof readableName === 'undefined')
+					throw new InternalServerErrorException(
+						'el nombre de la métrica no existe'
+					);
+				return {
+					readableName: readableName.readableName,
+					value: pair[1],
+					name: pair[0],
+				};
+			}
+		);
+
 		return {
 			id: v4(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
-			scores,
-			metrics,
+			scores: [algorithmUdem, ...scores],
+			metrics: newMetrics,
 		};
 	}
 
-	// Helper services
+	async saveAnalysis(
+		dto: SaveAnalysisService
+	): Promise<SaveAnalysisResponse> {
+		const { userId, postDto } = dto;
+		let { description } = dto;
+		if (!description) description = `${postDto.text.slice(0, 20)}...`;
 
-	getMetrics(text: string): Metrics {
-		const file = this.util.writeFile(text);
-		const metrics = this.util.spawnPython<Metrics>(file);
-		this.util.deleteFile(file);
-		return metrics;
+		const analysis = await this.postAnalysis(postDto);
+
+		const prismaScores: Prisma.ScoreCreateManyAnalysisResultInput[] =
+			analysis.scores.map<Prisma.ScoreCreateManyAnalysisResultInput>(
+				(score) => {
+					return {
+						value: score.score.value,
+						dificulty: score.score.level,
+						algorithmId: score.id,
+					};
+				}
+			);
+
+		const savedAnalysis = await this.prisma.analysisResult.create({
+			data: {
+				description,
+				scores: {
+					createMany: {
+						data: prismaScores,
+					},
+				},
+				user: {
+					connect: {
+						id: userId,
+					},
+				},
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		return { ...analysis, id: savedAnalysis.id, description };
 	}
+
+	// Helper services
 
 	getAlgorithmScore(
 		scales: PrismaScale[],
@@ -270,11 +440,6 @@ export class AnalysisService {
 		throw new InternalServerErrorException(
 			`score out of bounds ${JSON.stringify(scales)}\n\nwith ${value}`
 		);
-	}
-
-	normalizeScore(score: number) {
-		const scoreNum = Math.min(score, 100);
-		return Math.max(0, scoreNum);
 	}
 }
 
