@@ -5,6 +5,7 @@ import { AnalysisModule } from './analysis/analysis.module';
 
 import { AlgorithmModule } from './algorithm/algorithm.module';
 import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { AppLoggerMiddleware } from './middleware';
 import { PrismaModule } from './prisma/prisma.module';
@@ -23,9 +24,9 @@ import { UtilModule } from './util/util.module';
 		MetricsModule,
 		AuthModule,
 		AlgorithmModule,
+		EmailModule,
 	],
 	controllers: [],
-	providers: [],
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer): void {

@@ -1,15 +1,19 @@
 import {
+	BadRequestException,
 	Injectable,
 	InternalServerErrorException,
 	NotFoundException,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '@src/prisma/prisma.service';
 import {
+	ChangePasswordService,
 	GetUserResponse,
 	PatchUserResponse,
 	PatchUserService,
 } from '@src/types/user';
+import { hash, verify } from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -69,6 +73,41 @@ export class UserService {
 		});
 
 		return updatedUser;
+	}
+
+	async changePassword(dto: ChangePasswordService) {
+		const { oldPassword, newPassword, userId } = dto;
+
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				hash: true,
+			},
+		});
+
+		if (!user) throw new NotFoundException('Usuario no existente');
+
+		const valid = await verify(user.hash, oldPassword);
+
+		if (!valid) throw new UnauthorizedException('Credenciales incorrectas');
+
+		if (oldPassword === newPassword)
+			throw new BadRequestException(
+				'Tu contraseña nueva es igual a tu contraseña actual'
+			);
+
+		const hashedPassword = await hash(newPassword);
+
+		await this.prisma.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				hash: hashedPassword,
+			},
+		});
 	}
 
 	async deleteUser(userId: User['id']): Promise<void> {

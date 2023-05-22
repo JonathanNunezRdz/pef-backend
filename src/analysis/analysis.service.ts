@@ -257,38 +257,50 @@ export class AnalysisService {
 			select: prismaAlgorithmFindManySelect.select,
 		});
 
-		const scores: BaseAlgorithmScore[] = algorithms.map((algorithm) => {
-			const {
-				formula,
-				scales,
-				variables: rawVariables,
-				...rest
-			} = algorithm;
-			try {
-				const variables = rawVariables
-					.map((variable) => variable.variable.name)
-					.reduce((prev, current) => {
-						return {
-							...prev,
-							[current]: metrics[current],
-						};
-					}, {});
+		const selectAlgorithms = algorithms.filter((algorithm) =>
+			[
+				'Fernández Huerta',
+				'Gutiérrez de Polini',
+				'Crawford',
+				'Szigriszt-Pazos',
+				'Inflesz',
+			].includes(algorithm.name)
+		);
 
-				let value = evaluate(formula, variables);
-				value = Math.min(value, algorithm.max);
-				value = Math.max(algorithm.min, value);
-				const score = this.getAlgorithmScore(scales, value);
+		const scores: BaseAlgorithmScore[] = selectAlgorithms.map(
+			(algorithm) => {
+				const {
+					formula,
+					scales,
+					variables: rawVariables,
+					...rest
+				} = algorithm;
+				try {
+					const variables = rawVariables
+						.map((variable) => variable.variable.name)
+						.reduce((prev, current) => {
+							return {
+								...prev,
+								[current]: metrics[current],
+							};
+						}, {});
 
-				return {
-					...rest,
-					score,
-				};
-			} catch (error) {
-				console.error('algorithm:', algorithm.name);
-				console.error('variables:', rawVariables);
-				throw error;
+					let value = evaluate(formula, variables);
+					value = Math.min(value, algorithm.max);
+					value = Math.max(algorithm.min, value);
+					const score = this.getAlgorithmScore(scales, value);
+
+					return {
+						...rest,
+						score,
+					};
+				} catch (error) {
+					console.error('algorithm:', algorithm.name);
+					console.error('variables:', rawVariables);
+					throw error;
+				}
 			}
-		});
+		);
 
 		// aplicar algoritmo desarrollado aqui
 		const newScores = scores
@@ -359,13 +371,15 @@ export class AnalysisService {
 			}
 		);
 
-		return {
+		const result = {
 			id: v4(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			scores: [algorithmUdem, ...scores],
 			metrics: newMetrics,
 		};
+
+		return result;
 	}
 
 	async saveAnalysis(

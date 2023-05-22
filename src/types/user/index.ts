@@ -1,3 +1,4 @@
+export * from './change-password.dto';
 export * from './patch-user.dto';
 export * from './post-user.dto';
 export * from './signin.dto';

@@ -51,13 +51,9 @@ export class UtilService {
 	}
 
 	validateDOCX(mimetype: string) {
-		if (
-			/(application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/.test(
-				mimetype
-			)
-		)
-			return true;
-		return false;
+		return /(application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)/.test(
+			mimetype
+		);
 	}
 
 	validateUrl(url: string) {

@@ -1,13 +1,15 @@
 import { User } from '@prisma/client';
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class PatchUserDto {
 	@IsString()
 	@IsOptional()
+	@IsNotEmpty()
 	firstName?: User['firstName'];
 
 	@IsString()
 	@IsOptional()
+	@IsNotEmpty()
 	lastName?: User['lastName'];
 }
 

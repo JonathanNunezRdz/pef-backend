@@ -11,12 +11,16 @@ import {
 import { User } from '@prisma/client';
 import { GetUser } from '@src/auth/decorator';
 import { JwtGuard } from '@src/auth/guard';
-import { PatchUserDto } from '@src/types/user';
+import { EmailService } from '@src/email/email.service';
+import { ChangePasswordDto, PatchUserDto } from '@src/types/user';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
-	constructor(private readonly userService: UserService) {}
+	constructor(
+		private readonly userService: UserService,
+		private readonly email: EmailService
+	) {}
 
 	// get routes
 	@UseGuards(JwtGuard)
@@ -29,7 +33,7 @@ export class UserController {
 
 	// put/patch routes
 	@UseGuards(JwtGuard)
-	@Patch()
+	@Patch('')
 	patchUser(
 		@GetUser('id') userId: User['id'],
 		@Body() patchUserDto: PatchUserDto
@@ -37,10 +41,20 @@ export class UserController {
 		return this.userService.patchUser({ patchUserDto, userId });
 	}
 
+	@UseGuards(JwtGuard)
+	@HttpCode(HttpStatus.OK)
+	@Patch('change_password')
+	changePassword(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: ChangePasswordDto
+	) {
+		return this.userService.changePassword({ ...dto, userId });
+	}
+
 	// delete routes
 	@UseGuards(JwtGuard)
 	@HttpCode(HttpStatus.OK)
-	@Delete()
+	@Delete('')
 	deleteUser(@GetUser('id') userId: User['id']) {
 		return this.userService.deleteUser(userId);
 	}

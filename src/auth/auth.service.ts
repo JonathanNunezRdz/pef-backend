@@ -3,10 +3,10 @@ import {
 	ForbiddenException,
 	Injectable,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { EmailService } from '@src/email/email.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import { SignInDto, SignInResponse, SignUpDto } from '@src/types/user';
 import { hash, verify } from 'argon2';
@@ -16,7 +16,7 @@ export class AuthService {
 	constructor(
 		private prisma: PrismaService,
 		private jwt: JwtService,
-		private config: ConfigService
+		private email: EmailService
 	) {}
 
 	async signUp(dto: SignUpDto) {
@@ -31,6 +31,7 @@ export class AuthService {
 					hash: hashedPassword,
 				},
 			});
+			await this.email.sendAccountCreation(firstName, email);
 			return this.signToken(rawUser.id, rawUser.email);
 		} catch (error) {
 			if (error instanceof PrismaClientKnownRequestError) {
