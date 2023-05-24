@@ -5,6 +5,8 @@ import { PrismaService } from '@src/prisma/prisma.service';
 export class AlgorithmService {
 	constructor(private prisma: PrismaService) {}
 
+	// get services
+
 	async getAlgorithms() {
 		const algorithms = await this.prisma.algorithm.findMany({
 			select: {
