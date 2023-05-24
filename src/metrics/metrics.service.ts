@@ -196,7 +196,7 @@ export class MetricsService {
 		// https://stackoverflow.com/questions/4576077/how-can-i-split-a-text-into-sentences#answer-31505798
 		return text
 			.replace('\n', '')
-			.split(/[.!?:;]/)
+			.split(/\b(?<![.!?:;]\p{L})[.!?:;]/u)
 			.filter((elem) => elem !== '');
 	}
 

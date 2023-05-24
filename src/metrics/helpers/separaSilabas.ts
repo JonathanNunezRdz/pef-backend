@@ -1,3 +1,6 @@
+// Convertido a Typescript basado en:
+// Based on Mabodo's ipython notebook (https://github.com/mabodo/sibilizador)
+
 type CharType = 'V' | 'v' | 'x' | 's' | 'c';
 
 const STRONG_VOWEL = new Set(['a', 'á', 'e', 'é', 'o', 'ó', 'í', 'ú']);

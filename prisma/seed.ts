@@ -4,15 +4,18 @@ import { hash } from 'argon2';
 const prisma = new PrismaClient();
 
 async function main() {
-	const defaultPassword = await hash('password');
-	await prisma.user.create({
-		data: {
-			firstName: 'Test',
-			lastName: 'User',
-			email: 'jonas@jonas.com',
-			hash: defaultPassword,
-		},
-	});
+	if (process.env.NODE_ENV === 'development') {
+		console.log('added test user');
+		const defaultPassword = await hash('password');
+		await prisma.user.create({
+			data: {
+				firstName: 'Test',
+				lastName: 'User',
+				email: 'jonas@jonas.com',
+				hash: defaultPassword,
+			},
+		});
+	}
 
 	//  agregar nombre legible para las variables
 	await prisma.variable.createMany({
