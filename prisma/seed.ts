@@ -17,6 +17,19 @@ async function main() {
 		});
 	}
 
+	const saved = await prisma.algorithm.findFirst({
+		where: {
+			name: 'Algoritmo UDEM',
+		},
+		select: {
+			id: true,
+		},
+	});
+
+	if (saved) {
+		return;
+	}
+
 	//  agregar nombre legible para las variables
 	await prisma.variable.createMany({
 		data: [
