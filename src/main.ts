@@ -1,7 +1,8 @@
-import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { json } from 'express';
 import 'multer';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -15,6 +16,7 @@ async function bootstrap() {
 
 	const globalPrefix = 'api';
 	app.setGlobalPrefix(globalPrefix);
+	app.use(json({ limit: '20mb' }));
 
 	const port = process.env.PORT || 4200;
 	await app.listen(port);
