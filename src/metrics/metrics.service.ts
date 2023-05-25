@@ -1,66 +1,95 @@
 import { Injectable } from '@nestjs/common';
 import { GetMetricsService, Metrics } from '@src/types';
-import { variance } from 'mathjs';
 import { Silabizer, numToWord } from './helpers';
 
-// const alphabet = '([\p{L}])';
-// const prefixes = '(Sr|Sta|Sra|Srta|Dr)[.]';
-// const suffixes = '(Inc|Ltd|Jr|Sr|Co)'
-// const starters = ''
+type RegExpMatchArrayWithIndices = RegExpMatchArray & {
+	indices: Array<[number, number]>;
+};
+interface AverageMetricsArgs {
+	totalWords: number;
+	wordsPerSentence: string[][];
+	totalSentences: number;
+	numOfSamples: number;
+	lastIndex: number;
+	totalSyllables: number;
+	syllablesPerSentence: Silabizer[][];
+}
 
 @Injectable()
 export class MetricsService {
 	getMetrics(dto: GetMetricsService): Metrics {
 		let { text } = dto;
 		const { numOfSamples } = dto;
-		debugger;
 
 		text = sanitizeText(text);
 		text = numbersToWords(text);
 
-		const words = this.getWords(text);
-		const numOfLetters = this.countLetters(words);
-		const syllables = this.getSyllables(words);
-		const numOfSyllables = this.countAllSyllables(syllables);
 		const sentences = this.getSentences(text);
-		const numOfSentences = sentences.length || 1;
-
-		const lengths = words.map((word) => word.length);
-
+		const wordsPerSentence = sentences.map((sentence) => {
+			try {
+				return this.getWords(sentence);
+			} catch (error) {
+				return [];
+			}
+		});
+		const lastIndex = this.getValidLastSentenceIndex(
+			wordsPerSentence,
+			sentences.length
+		);
+		const totalWords = wordsPerSentence.reduce(
+			(acc, curr) => acc + curr.length,
+			0
+		);
+		const totalLetters = this.countLetters(
+			wordsPerSentence.reduce((prev, curr) => [...prev, ...curr], [])
+		);
 		/**
-		 * TODO: refactor getAverageSentencesAndSyllablesPerHundredWords method to not do so much work
-		 * that has already deen done, e.g. separate into words, syllables, etc.
-		 *
-		 * Do that before calling this method and send them as arguments
-		 *
-		 * Also, create a class that encapsulate what a sentence is and contains:
-		 * A sentence has its text, the indexes for the words it has and methos that extract each word providing
-		 * those indexes.
+		 * Array of sentences. Each element is an array of syllables.
 		 */
+		const syllablesPerSentence = wordsPerSentence.map((sentence) =>
+			this.getSyllables(sentence)
+		);
+		const totalSyllables = syllablesPerSentence.reduce(
+			(prev, curr) => prev + this.countAllSyllables(curr),
+			0
+		);
+		const totalSentences = sentences.length || 1;
+
+		const letterPerWord = wordsPerSentence.reduce<number[]>(
+			(prev, curr) => {
+				const asd = curr.map((word) => word.length);
+				return [...prev, ...asd];
+			},
+			[]
+		);
 		const { avgSentencesPerHundredWords, avgSyllablesPerHundredWords } =
-			this.getAverageSentencesAndSyllablesPerHundredWords(
-				sentences,
-				numOfSamples
-			);
+			this.getAverageSentencesAndSyllablesPerHundredWords({
+				lastIndex,
+				numOfSamples,
+				syllablesPerSentence,
+				totalSentences,
+				totalSyllables,
+				totalWords,
+				wordsPerSentence,
+			});
 
 		return {
-			numOfLetters,
-			numOfSyllables,
-			numOfWords: words.length,
-			numOfSentences,
-			avgLettersPerWord: numOfLetters / words.length,
-			avgSyllablePerWord: numOfSyllables / words.length,
-			avgWordsPerSentence: words.length / numOfSentences,
+			numOfLetters: totalLetters,
+			numOfSyllables: totalSyllables,
+			numOfWords: totalWords,
+			numOfSentences: totalSentences,
+			avgLettersPerWord: totalLetters / totalWords,
+			avgSyllablePerWord: totalSyllables / totalWords,
+			avgWordsPerSentence: totalWords / totalSentences,
 			avgSentencesPerHundredWords,
 			avgSyllablesPerHundredWords,
-			varLettersPerWord: variance(...lengths),
+			varLettersPerWord: variance(letterPerWord),
 			numOfSamples,
 		};
 	}
 
 	getAverageSentencesAndSyllablesPerHundredWords(
-		sentences: string[],
-		numOfSamples: number
+		args: AverageMetricsArgs
 	): Pick<
 		Metrics,
 		'avgSentencesPerHundredWords' | 'avgSyllablesPerHundredWords'
@@ -76,64 +105,52 @@ export class MetricsService {
 		 * Exceptions:
 		 * When the text is less or equal than 100 words, just count the sentences and return
 		 */
-		const numOfSentences = sentences.length || 1;
+		const {
+			totalWords,
+			lastIndex,
+			numOfSamples,
+			totalSentences,
+			wordsPerSentence,
+			totalSyllables,
+			syllablesPerSentence,
+		} = args;
 
-		// ERROR: test text "Viaje a la semilla" throws error here
-		const wordsPerSentence = sentences.map((sentence) => {
-			// console.log(sentence);
-			if (sentence.match(/\p{L}+/gu)) return this.getWords(sentence);
-			return [];
-		});
-		let lastIndex = numOfSentences - 1;
-		let totalWords = 0;
-		for (let i = numOfSentences - 1; i >= 0; i--) {
-			totalWords += wordsPerSentence[i].length;
-			if (totalWords >= 100) {
-				lastIndex = i;
-				break;
-			}
-		}
-		const numOfWords = wordsPerSentence.reduce(
-			(acc, curr) => acc + curr.length,
-			0
-		);
-		if (numOfWords <= 100) {
-			const allSyllables = wordsPerSentence.reduce<Silabizer[]>(
-				(acc, cur) => {
-					return [...acc, ...this.getSyllables(cur)];
-				},
-				[]
-			);
+		if (totalWords <= 100) {
 			return {
 				avgSentencesPerHundredWords:
-					numOfSentences * (100 / numOfWords),
+					totalSentences * (100 / totalWords),
 				avgSyllablesPerHundredWords:
-					this.countAllSyllables(allSyllables) * (100 / numOfWords),
+					totalSyllables * (100 / totalWords),
 			};
 		}
 
 		const numOfSentencesPerGroup: number[] = [];
 		const numOfSyllablesPerGroup: number[] = [];
+
 		for (let j = 0; j < numOfSamples; j++) {
 			const [first] = getRandomIndexes(lastIndex, 0);
-			totalWords = 0;
-			let totalSentences = 0;
-			let totalSyllables = 0;
+			let accumulatedWords = 0;
+			let accumulatedSentences = 0;
+			let accumulatedSyllables = 0;
 
-			for (let i = first; i < numOfSentences; i++) {
-				totalWords += wordsPerSentence[i].length;
-				totalSyllables += this.countAllSyllables(
-					this.getSyllables(wordsPerSentence[i])
+			for (let i = first; i < totalSentences; i++) {
+				accumulatedWords += wordsPerSentence[i].length;
+				accumulatedSyllables += this.countAllSyllables(
+					syllablesPerSentence[i]
 				);
-				totalSentences++;
+				accumulatedSentences++;
 
-				if (totalWords >= 100) {
+				if (accumulatedWords >= 100) {
 					break;
 				}
 			}
 
-			numOfSentencesPerGroup.push(totalSentences * (100 / totalWords));
-			numOfSyllablesPerGroup.push(totalSyllables * (100 / totalWords));
+			numOfSentencesPerGroup.push(
+				accumulatedSentences * (100 / accumulatedWords)
+			);
+			numOfSyllablesPerGroup.push(
+				accumulatedSyllables * (100 / accumulatedWords)
+			);
 		}
 
 		return {
@@ -144,30 +161,6 @@ export class MetricsService {
 				numOfSyllablesPerGroup.reduce((acc, cur) => acc + cur, 0) /
 				numOfSamples,
 		};
-	}
-
-	getAverageSyllablesPerHundredWords(
-		wordsWithSyllables: Silabizer[],
-		numOfSamples: number
-	) {
-		const numOfWords = wordsWithSyllables.length;
-		if (numOfWords <= 100) {
-			return (
-				this.countAllSyllables(wordsWithSyllables) * (100 / numOfWords)
-			);
-		}
-		const numOfSyllablesPerGroup: number[] = [];
-		for (let i = 0; i < numOfSamples; i++) {
-			const [first, last] = getRandomIndexes(numOfWords, 100);
-			const numOfSyllables = this.countAllSyllables(
-				wordsWithSyllables.slice(first, last)
-			);
-			numOfSyllablesPerGroup.push(numOfSyllables);
-		}
-		return (
-			numOfSyllablesPerGroup.reduce((acc, cur) => acc + cur, 0) /
-			numOfSamples
-		);
 	}
 
 	getWords(text: string): string[] {
@@ -208,6 +201,38 @@ export class MetricsService {
 				.filter((elem) => elem !== '').length || 1
 		);
 	}
+
+	/**
+	 * Count words of sentences starating from the last sentence of the text
+	 * until it reaches 100. When reached, set the index to the last sentence
+	 * entered. This index determines the last sentence from which you can reach
+	 * 100 words until the end of the text
+	 */
+	getValidLastSentenceIndex(
+		wordsPerSentence: string[][],
+		totalSentences: number
+	) {
+		let accumulatedWords = 0;
+		for (let i = totalSentences - 1; i >= 0; i--) {
+			accumulatedWords += wordsPerSentence[i].length;
+			if (accumulatedWords >= 100) {
+				return i;
+			}
+		}
+		return 0;
+	}
+}
+
+export function variance(arr: number[]) {
+	if (arr.length === 0) return 0;
+	const sum = arr.reduce((prev, curr) => prev + curr, 0);
+	const { length: num } = arr;
+	const median = sum / num;
+	return (
+		arr.reduce((prev, x) => {
+			return prev + (x - median) * (x - median);
+		}, 0) / num
+	);
 }
 
 export function sanitizeText(text: string): string {
@@ -219,12 +244,46 @@ export function isLetter(char: string) {
 }
 
 export function numbersToWords(text: string) {
-	const numFormat = /^[\-]?[1-9][0-9]*\.?[0-9]+$/;
+	const numFormat = /[\-]?[1-9][0-9]*\.?[0-9]*/d;
 	const newText = text
 		.split(' ')
 		.map((word) => {
-			if (numFormat.test(word)) {
-				return numToWord(Number(word)); // change number to worded number
+			const cleanPart = numFormat.exec(word);
+			if (cleanPart) {
+				if (cleanPart[0].includes('-')) {
+					const [first, last] = (
+						cleanPart as RegExpMatchArrayWithIndices
+					).indices[0];
+					const part = word.slice(first + 1, last);
+					try {
+						const convertedPart = numToWord(Number(part));
+						return `${word.slice(
+							0,
+							first
+						)}negativo ${convertedPart}${word.slice(last)}`;
+					} catch (error) {
+						console.log('fallido en:', cleanPart);
+						console.log('fallido en:', part);
+						throw error;
+					}
+				} else {
+					const [first, last] = (
+						cleanPart as RegExpMatchArrayWithIndices
+					).indices[0];
+					const part = word.slice(first, last);
+					try {
+						const convertedPart = numToWord(Number(part));
+						return `${word.slice(
+							0,
+							first
+						)}${convertedPart}${word.slice(last)}`;
+					} catch (error) {
+						console.log('no es negativo');
+						console.log('fallido en:', cleanPart);
+						console.log('fallido en:', part);
+						throw error;
+					}
+				}
 			}
 			return word;
 		})

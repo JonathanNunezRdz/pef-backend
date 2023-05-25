@@ -90,10 +90,9 @@ export class AnalysisControler {
 		)
 		document: Express.Multer.File
 	) {
-		console.log('body', postDto);
 		return this.analysisService.postAnalysisWithFile({
 			document,
-			numOfSamples: 10,
+			numOfSamples: postDto.numOfSamples || 5,
 		});
 	}
 

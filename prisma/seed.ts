@@ -19,7 +19,7 @@ async function main() {
 
 	const saved = await prisma.algorithm.findFirst({
 		where: {
-			name: 'Algoritmo UDEM',
+			name: 'UDEM',
 		},
 		select: {
 			id: true,
@@ -519,7 +519,7 @@ async function main() {
 		}),
 		prisma.algorithm.create({
 			data: {
-				name: 'Algoritmo UDEM',
+				name: 'UDEM',
 				max: 100,
 				min: 0,
 				unit: 'puntos de legibilidad',

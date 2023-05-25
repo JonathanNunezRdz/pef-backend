@@ -7,6 +7,7 @@ export class PostAnalysisDto {
 	text: string;
 
 	@IsInt()
+	@Type(() => Number)
 	@Min(1)
 	@IsOptional()
 	numOfSamples?: number;
@@ -56,6 +57,7 @@ export class PostAnalysisWithUrlDto {
 	url: string;
 
 	@IsInt()
+	@Type(() => Number)
 	@Min(1)
 	@IsOptional()
 	numOfSamples?: number;

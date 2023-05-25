@@ -29,10 +29,15 @@ export function numToWord(num: number, currency?: string) {
 
 	numUnits.forEach((num, i) => {
 		if (Number(num) !== 0) {
-			const words = hundredsWords(Number(num));
-			const units =
-				UNITS[numUnits.length - i - 1][Number(num) === 1 ? 0 : 1];
-			humanReadable.push([words, units]);
+			try {
+				const words = hundredsWords(Number(num));
+				const units =
+					UNITS[numUnits.length - i - 1][Number(num) === 1 ? 0 : 1];
+				humanReadable.push([words, units]);
+			} catch (error) {
+				console.log('trono en:', num);
+				throw error;
+			}
 		}
 	});
 	numDecimals.forEach((num, i) => {
