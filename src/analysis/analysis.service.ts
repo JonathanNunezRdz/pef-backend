@@ -251,7 +251,7 @@ export class AnalysisService {
 		const algorithms = await this.prisma.algorithm.findMany({
 			where: {
 				name: {
-					not: 'Algoritmo UDEM',
+					not: 'UDEM',
 				},
 			},
 			select: prismaAlgorithmFindManySelect.select,
@@ -320,7 +320,7 @@ export class AnalysisService {
 
 		const algorithmUdemData = await this.prisma.algorithm.findFirst({
 			where: {
-				name: 'Algoritmo UDEM',
+				name: 'UDEM',
 			},
 			select: {
 				id: true,
