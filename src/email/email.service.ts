@@ -4,7 +4,7 @@ import SendGrid, { MailDataRequired } from '@sendgrid/mail';
 
 @Injectable()
 export class EmailService {
-	constructor(readonly config: ConfigService) {
+	constructor(private readonly config: ConfigService) {
 		const sendgridApiKey = config.getOrThrow<string>('SENDGRID_API_KEY');
 		SendGrid.setApiKey(sendgridApiKey);
 	}
@@ -15,11 +15,13 @@ export class EmailService {
 	}
 
 	async sendAccountCreation(name: string, to: string) {
+		const email = this.config.getOrThrow<string>('SENDGRID_EMAIL');
+		const emailName = this.config.getOrThrow<string>('SENDGRID_NAME');
 		return this.sendMail({
 			to,
 			from: {
-				email: 'jonathan.nunez@udem.edu',
-				name: 'Legibilidad Udem',
+				email,
+				name: emailName,
 			},
 			subject: 'Cuenta creada exitosamente',
 			text: `Bienvenido, ${name}! Gracias por registrarte en Lee. Con tu cuentra prodrás ver los resultados de los análisis que hayas realizado.`,
