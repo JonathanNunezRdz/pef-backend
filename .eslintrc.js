@@ -15,7 +15,7 @@ module.exports = {
 		node: true,
 		jest: true,
 	},
-	ignorePatterns: ['.eslintrc.js', 'checkEnv.js'],
+	ignorePatterns: ['.eslintrc.js', 'checkEnv.js', 'ecosystem.config.js'],
 	rules: {
 		'@typescript-eslint/interface-name-prefix': 'off',
 		'@typescript-eslint/explicit-function-return-type': 'off',
