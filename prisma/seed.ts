@@ -4,17 +4,42 @@ import { hash } from 'argon2';
 const prisma = new PrismaClient();
 
 async function main() {
-	if (process.env.NODE_ENV === 'development') {
-		console.log('added test user');
-		const defaultPassword = await hash('password');
-		await prisma.user.create({
-			data: {
-				firstName: 'Test',
-				lastName: 'User',
-				email: 'jonas@jonas.com',
-				hash: defaultPassword,
+	if (
+		process.env.NODE_ENV === 'development' ||
+		process.env.NODE_ENV === 'test'
+	) {
+		console.log('ambiente de:', process.env.NODE_ENV);
+		console.log('se agregará un usuario de prueba');
+
+		const testUserSaved = await prisma.user.findFirst({
+			where: {
+				email: 'test@test.com',
+			},
+			select: {
+				id: true,
 			},
 		});
+
+		if (!testUserSaved) {
+			const defaultPassword = await hash('password');
+			await prisma.user.create({
+				data: {
+					firstName: 'Test',
+					lastName: 'User',
+					email: 'test@test.com',
+					hash: defaultPassword,
+				},
+			});
+			console.log('usuario de prueba agregado con:', {
+				email: 'test@test.com',
+				password: 'password',
+			});
+		} else {
+			console.log('usuario de prueba ya existente');
+		}
+	} else {
+		console.log('ambiente de: production');
+		console.log('no se agregará un usuario de prueba');
 	}
 
 	const saved = await prisma.algorithm.findFirst({
@@ -27,10 +52,17 @@ async function main() {
 	});
 
 	if (saved) {
+		console.log(
+			'datos iniciales de la aplicación ya estan presentes en la base de datos'
+		);
+		console.log('saltando este paso');
 		return;
 	}
 
-	//  agregar nombre legible para las variables
+	console.log(
+		'se agregaran los datos iniciales de la aplicación a la base de datos'
+	);
+
 	await prisma.variable.createMany({
 		data: [
 			{
@@ -90,9 +122,6 @@ async function main() {
 		return variable.id;
 	};
 
-	// modify formula based on this: https://scielo.isciii.es/scielo.php?script=sci_arttext&pid=S1135-57272002000400007&lng=en&nrm=iso
-	// add an option for users to select a desired amount of "rounds" (muestras) for their query
-	// also provide a default and an explanation for this option
 	await prisma.$transaction([
 		prisma.algorithm.create({
 			data: {
@@ -553,6 +582,10 @@ async function main() {
 			},
 		}),
 	]);
+
+	console.log(
+		'se agregaron los datos iniciales de la aplicación a la base de datos exitosamente'
+	);
 }
 
 main()
