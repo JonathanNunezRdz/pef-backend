@@ -446,20 +446,6 @@ export class AnalysisService {
 	}
 }
 
-// function isSpanish(text: string): boolean {
-// 	const spanishRegex = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+/g;
-// 	const matches = text.match(spanishRegex);
-// 	if (matches === null) {
-// 		return false;
-// 	}
-// 	const numWords = matches.length;
-// 	const numSpanishWords = matches.filter((word) =>
-// 		/[áéíóúÁÉÍÓÚñÑüÜ]/.test(word)
-// 	).length;
-// 	const percentSpanishWords = numSpanishWords / numWords;
-// 	return percentSpanishWords >= 0.2;
-// }
-
 export const TEST_TEXT = `Tengo 23 años viviendo en una casa pequeña pero moderna en el centro de la ciudad. Mi casa tiene dos habitaciones, un baño, una sala de estar, una cocina y una pequeña terraza. Por las tardes el sol calienta la casa durante horas, así que no suele hacer frío.`;
 
 /**
@@ -470,33 +456,4 @@ export const TEST_TEXT = `Tengo 23 años viviendo en una casa pequeña pero mode
  * 13
  * 17
  * 16
- */
-
-/**
- * Formulas
--> huerta
-    -> L = 206.84 - 0.60P - 1.02F
-    -> P = promedio de silabas por palabra
-    -> F = media de palabras por frase
--> polini
-    -> C = 95.2 - (9.7L / P) - (0.35P / F)
-    -> L = numero de letras
-    -> P = numero de palabras
-    -> F = numero de frases
--> crawford
-    -> A = -0.205OP + 0.049SP - 3.047
-    -> OP = numero de oraciones por cien palabras
-    -> SP = numero de silabas por cien palabras
--> pazos
-    -> P = 206.835 - (62.3S / P) - (P / F)
-    -> S = total de silabas
-    -> P = cantidad de palabras
-    -> F = numero de frases
--> barrio
-    -> igual que pazos
--> miu
-    -> u = (n / (n - 1)) (x / v) * 100
-    -> n = numero de palabras
-    -> x = media de letras por palabra
-    -> v = varianza de letras por palabras
  */
