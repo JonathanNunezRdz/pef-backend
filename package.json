@@ -6,7 +6,7 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"scripts": {
-		"build": "nest build -p ./tsconfig.${npm_config_env}.json",
+		"build": "nest build",
 		"prebuild": "npm run prepare:db --env=${npm_config_env} && npm run seed:db --env=${npm_config_env}",
 		"start": "dotenv -e .env.${npm_config_env} -- nest start",
 		"start:dev": "dotenv -e .env.dev -- nest start --watch",
