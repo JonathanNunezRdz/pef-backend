@@ -15,26 +15,16 @@ envTypes.forEach((type) => {
 module.exports = {
 	apps: [
 		{
-			name: 'pef-backend-dev',
-			script: './dist/dev/src/main.js',
+			name: 'pef-backend',
+			script: './dist/src/main.js',
 			instances: 1,
-			env: {
+			env_dev: {
 				...env['dev'],
 			},
-		},
-		{
-			name: 'pef-backend-test',
-			script: './dist/test/src/main.js',
-			instances: 1,
-			env: {
+			env_test: {
 				...env['test'],
 			},
-		},
-		{
-			name: 'pef-backend-prod',
-			script: './dist/prod/src/main.js',
-			instances: 1,
-			env: {
+			env_prod: {
 				...env['prod'],
 			},
 		},
