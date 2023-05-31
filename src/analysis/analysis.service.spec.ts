@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { MetricsService } from '@src/metrics/metrics.service';
 import { PrismaService } from '@src/prisma/prisma.service';
 import { UtilService } from '@src/util/util.service';
 import { AnalysisService } from './analysis.service';
@@ -12,6 +13,7 @@ describe('AnalysisService', () => {
 			providers: [
 				UtilService,
 				AnalysisService,
+				MetricsService,
 				ConfigService,
 				PrismaService,
 			],

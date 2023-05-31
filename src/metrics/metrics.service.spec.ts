@@ -13,7 +13,7 @@ describe('MetricsService', () => {
 		}).compile();
 
 		service = module.get<MetricsService>(MetricsService);
-		metrics = service.getMetrics(TEST_TEXT);
+		metrics = service.getMetrics({ numOfSamples: 1, text: TEST_TEXT });
 	});
 
 	it('should be defined', () => {
